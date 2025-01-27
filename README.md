@@ -1,12 +1,10 @@
-# md2latex
+# md2ltx
 
 A command-line tool for converting Markdown to PDF via Pandoc and LaTeX.
 
 ## Usage
 
-```bash
-python main.py [source.md] [output.pdf] [--open] [--save] [--help]
-```
+    md2ltx [source.md] [output.pdf] [--open] [--save] [--help]
 
 ## Positional Arguments
 
@@ -29,7 +27,7 @@ python main.py [source.md] [output.pdf] [--open] [--save] [--help]
 
 ## Description
 
-md2latex uses Pandoc to transform Markdown files into LaTeX, which pdflatex then uses to generate a final PDF. This workflow supports most of Markdown’s core syntax plus many Pandoc extensions. Below is a high-level overview of how Pandoc typically converts various Markdown constructs into LaTeX. For full details, refer to Pandoc’s official documentation.
+md2ltx uses Pandoc to transform Markdown files into LaTeX, which pdflatex then uses to generate a final PDF. This workflow supports most of Markdown’s core syntax plus many Pandoc extensions. Below is a high-level overview of how Pandoc typically converts various Markdown constructs into LaTeX. For full details, refer to Pandoc’s official documentation.
 
 ---
 
