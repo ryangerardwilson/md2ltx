@@ -1,232 +1,239 @@
-===============================================================================
-md2latex: A Command-Line Tool for Converting Markdown to PDF via Pandoc & LaTeX
-===============================================================================
+# md2latex
 
-USAGE:
-    md2ltx [source.md] [output.pdf] [--open] [--save] [--help]
+A command-line tool for converting Markdown to PDF via Pandoc and LaTeX.
 
-POSITIONAL ARGUMENTS:
-    source_file    Path to the input Markdown (.md) file.
-    output_pdf     (Optional) Path to the output PDF file. If omitted, 
-                   a default name is derived from the source file.
+## Usage
 
-OPTIONAL SWITCHES:
-    --open         Open the resulting PDF in the system's default viewer.
-    --save         Save the resulting PDF to the provided output file instead 
-                   of a temporary file.
-    --help         Show this help message and exit.
+```bash
+python main.py [source.md] [output.pdf] [--open] [--save] [--help]
+```
 
-DESCRIPTION:
-    md2latex uses Pandoc to transform Markdown files into LaTeX, then invokes
-    pdflatex to create a final PDF. This workflow supports most of Markdown’s 
-    core syntax plus many Pandoc extensions.
+## Positional Arguments
 
-    Below is a high-level, illustrative overview of how Pandoc typically converts
-    various Markdown constructs into LaTeX. This list is not exhaustive, but it 
-    captures many common syntax elements. Refer to the official Pandoc documentation 
-    for the most detailed and up-to-date feature set.
+• <strong>source_file</strong>  
+  Path to the input Markdown (.md) file.  
 
--------------------------------------------------------------------------------
-1) HEADINGS
--------------------------------------------------------------------------------
-• Markdown:
-      # Heading 1
-      ## Heading 2
-      ### Heading 3
-      ...etc.
+• <strong>output_pdf</strong> (optional)  
+  Path to the output PDF file. If omitted, a default name is derived from the source file.  
 
-• Pandoc → LaTeX:
-      \section{Heading 1}
-      \subsection{Heading 2}
-      \subsubsection{Heading 3}
-      ...
+## Optional Switches
 
-Depending on the heading level, Pandoc chooses \section, \subsection, etc. It also
-supports “underline” style headings like "===” and “---”.
+• <strong>--open</strong>  
+  Open the resulting PDF in the system’s default viewer.  
 
--------------------------------------------------------------------------------
-2) EMPHASIS & STRONG EMPHASIS
--------------------------------------------------------------------------------
-• Markdown:
-      *emphasis* or _emphasis_
-      **strong emphasis** or __strong emphasis__
+• <strong>--save</strong>  
+  Save the resulting PDF to the provided output file instead of using a temporary file.  
 
-• Pandoc → LaTeX:
-      \emph{emphasis}
-      \textbf{strong emphasis}
+• <strong>--help</strong>  
+  Show this help message and exit.  
 
--------------------------------------------------------------------------------
-3) INLINE CODE
--------------------------------------------------------------------------------
-• Markdown:
-      `inline code`
+## Description
 
-• Pandoc → LaTeX:
-      \texttt{inline code}
+md2latex uses Pandoc to transform Markdown files into LaTeX, which pdflatex then uses to generate a final PDF. This workflow supports most of Markdown’s core syntax plus many Pandoc extensions. Below is a high-level overview of how Pandoc typically converts various Markdown constructs into LaTeX. For full details, refer to Pandoc’s official documentation.
 
--------------------------------------------------------------------------------
-4) CODE BLOCKS
--------------------------------------------------------------------------------
-• Markdown (fenced code block):
-      ```
-      a = 1
-      b = 2
-      ```
+---
 
-• Pandoc → LaTeX (default):
-      \begin{verbatim}
-      a = 1
-      b = 2
-      \end{verbatim}
+### 1) Headings
 
-Pandoc can produce different environments (e.g., listings) with certain options.
+• <strong>Markdown</strong>  
+  <pre><code># Heading 1  
+## Heading 2  
+### Heading 3</code></pre>
 
--------------------------------------------------------------------------------
-5) LISTS
--------------------------------------------------------------------------------
-• Unordered lists:
-      - item 1
-      - item 2
-      - item 3
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\section{Heading 1}  
+\subsection{Heading 2}  
+\subsubsection{Heading 3}</code></pre>
 
-  Pandoc → LaTeX:
-      \begin{itemize}
-      \item item 1
-      \item item 2
-      \item item 3
-      \end{itemize}
+Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on the heading level. It also supports underline-style Markdown headings with “===” or “---” for level-one and level-two headings.
 
-• Ordered lists:
-      1. item 1
-      2. item 2
+---
 
-  Pandoc → LaTeX:
-      \begin{enumerate}
-      \item item 1
-      \item item 2
-      \end{enumerate}
+### 2) Emphasis &amp; Strong Emphasis
 
--------------------------------------------------------------------------------
-6) LINKS & IMAGES
--------------------------------------------------------------------------------
-• Markdown (inline link):
-      [Pandoc](https://pandoc.org)
+• <strong>Markdown</strong>  
+  <pre><code>*emphasis* or _emphasis_  
+**strong emphasis** or __strong emphasis__</code></pre>
 
-  Pandoc → LaTeX:
-      \href{https://pandoc.org}{Pandoc}
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\emph{emphasis}  
+\textbf{strong emphasis}</code></pre>
 
-• Markdown (image):
-      ![Alt text](image.png)
+---
 
-  Pandoc → LaTeX:
-      \includegraphics{image.png}
+### 3) Inline Code
 
-By default, \includegraphics is placed without additional floats. Options exist 
-for figure environments, captions, etc.
+• <strong>Markdown</strong>  
+  <pre><code>`inline code`</code></pre>
 
--------------------------------------------------------------------------------
-7) BLOCKQUOTES
--------------------------------------------------------------------------------
-• Markdown:
-      > This is a blockquote.
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\texttt{inline code}</code></pre>
 
-  Pandoc → LaTeX:
-      \begin{quote}
-      This is a blockquote.
-      \end{quote}
+---
 
--------------------------------------------------------------------------------
-8) HORIZONTAL RULES
--------------------------------------------------------------------------------
-• Markdown:
-      ---
-      ***
-      ___
+### 4) Code Blocks
 
-  Pandoc → LaTeX:
-      \hrule
+• <strong>Markdown (fenced)</strong>  
+  <pre><code>```  
+a = 1  
+b = 2  
+```</code></pre>
 
--------------------------------------------------------------------------------
-9) FOOTNOTES (Pandoc Extension)
--------------------------------------------------------------------------------
-• Markdown:
-      A footnote here.[^1]
+• <strong>Pandoc → LaTeX (by default)</strong>  
+  <pre><code>\begin{verbatim}  
+a = 1  
+b = 2  
+\end{verbatim}</code></pre>
 
-      [^1]: Footnote text.
+With certain options, Pandoc can use different LaTeX environments (e.g., listings).
 
-  Pandoc → LaTeX:
-      A footnote here.\footnote{Footnote text.}
+---
 
--------------------------------------------------------------------------------
-10) TABLES
--------------------------------------------------------------------------------
-• Markdown (simple pipe table):
-      | Column1 | Column2 |
-      |---------|---------|
-      | Val1    | Val2    |
+### 5) Lists
 
-  Pandoc → LaTeX:
-      \begin{table}
-      \centering
-      \begin{tabular}{ll}
-      \hline
-      Column1 & Column2 \\
-      \hline
-      Val1 & Val2 \\
-      \hline
-      \end{tabular}
-      \end{table}
+• <strong>Unordered (Markdown)</strong>  
+  <pre><code>- item 1  
+- item 2  
+- item 3</code></pre>
 
--------------------------------------------------------------------------------
-11) MATH & LaTeX BLOCKS
--------------------------------------------------------------------------------
-• Inline math:
-      $E = mc^2$
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\begin{itemize}  
+\item item 1  
+\item item 2  
+\item item 3  
+\end{itemize}</code></pre>
 
-  Pandoc → LaTeX:
-      \( E = mc^2 \)
+• <strong>Ordered (Markdown)</strong>  
+  <pre><code>1. item 1  
+2. item 2</code></pre>
 
-• Display math:
-      $$
-      E = mc^2
-      $$
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\begin{enumerate}  
+\item item 1  
+\item item 2  
+\end{enumerate}</code></pre>
 
-  Pandoc → LaTeX:
-      \[
-      E = mc^2
-      \]
+---
 
--------------------------------------------------------------------------------
-12) CITATIONS & BIBLIOGRAPHIES
--------------------------------------------------------------------------------
-Pandoc supports citations with a bibliography file. For instance,
-      [@smith2009]
-can become \cite{smith2009} in LaTeX via Pandoc’s citeproc or bibliography features.
+### 6) Links &amp; Images
 
--------------------------------------------------------------------------------
-13) METADATA & TITLE BLOCKS
--------------------------------------------------------------------------------
-YAML metadata (like “title: My Title”) can become \title{...}, \author{...}, etc.
-Use “-s” or “--standalone” to generate a title page in LaTeX with \maketitle.
+• <strong>Link (Markdown)</strong>  
+  <pre><code>[Pandoc](https://pandoc.org)</code></pre>
 
--------------------------------------------------------------------------------
-14) RAW LaTeX
--------------------------------------------------------------------------------
-Pandoc passes raw LaTeX through if the output is LaTeX or PDF. For example:
-      \newpage
-remains \newpage in the output.
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\href{https://pandoc.org}{Pandoc}</code></pre>
 
--------------------------------------------------------------------------------
-CONCLUSION: EXTENSIVE PANDOC CAPABILITIES
--------------------------------------------------------------------------------
-Pandoc is a powerful, configurable tool for converting among multiple document 
-formats. It parses your Markdown into an AST, then renders that AST to LaTeX 
-(or any other target format) according to Pandoc’s rules and templates.
+• <strong>Image (Markdown)</strong>  
+  <pre><code>![Alt text](image.png)</code></pre>
 
-For more details:
-• Pandoc User’s Guide: https://pandoc.org/MANUAL.html
-• Pandoc Demos:       https://pandoc.org/demos.html
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\includegraphics{image.png}</code></pre>
 
-This makes Pandoc one of the most robust ways to convert Markdown to LaTeX 
-(and many other output formats). Enjoy using md2latex!
+By default, <code>\includegraphics</code> is placed without floats. You can add captions or figure environments using extended syntax or metadata.
+
+---
+
+### 7) Blockquotes
+
+• <strong>Markdown</strong>  
+  <pre><code>> This is a blockquote.</code></pre>
+
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\begin{quote}  
+This is a blockquote.  
+\end{quote}</code></pre>
+
+---
+
+### 8) Horizontal Rules
+
+• <strong>Markdown</strong>  
+  <pre><code>---  
+***  
+___</code></pre>
+
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\hrule</code></pre>
+
+---
+
+### 9) Footnotes (Pandoc Extension)
+
+• <strong>Markdown</strong>  
+  <pre><code>This is some text with a footnote.[^1]
+
+[^1]: This is the footnote text.</code></pre>
+
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>This is some text with a footnote.\footnote{This is the footnote text.}</code></pre>
+
+---
+
+### 10) Tables
+
+• <strong>Markdown (simple pipe table)</strong>  
+  <pre><code>| Column1 | Column2 |  
+|---------|---------|  
+| Val1    | Val2    |  
+| Val3    | Val4    |</code></pre>
+
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\begin{table}  
+\centering  
+\begin{tabular}{ll}  
+\hline  
+Column1 & Column2 \\  
+\hline  
+Val1    & Val2    \\  
+Val3    & Val4    \\  
+\hline  
+\end{tabular}  
+\end{table}</code></pre>
+
+---
+
+### 11) Math &amp; LaTeX Blocks
+
+• <strong>Inline Math</strong>  
+  <pre><code>$E = mc^2$</code></pre>
+
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\(E = mc^2\)</code></pre>
+
+• <strong>Display Math</strong>  
+  <pre><code>$$  
+E = mc^2  
+$$</code></pre>
+
+• <strong>Pandoc → LaTeX</strong>  
+  <pre><code>\[  
+E = mc^2  
+\]</code></pre>
+
+---
+
+### 12) Citations &amp; Bibliographies
+
+Pandoc can handle citations if you provide a bibliography file. A reference like <code>[@smith2009]</code> can become <code>\cite{smith2009}</code> or <code>\autocite</code> depending on the style and Pandoc’s command-line options.
+
+---
+
+### 13) Metadata &amp; Title Blocks
+
+Markdown with a YAML metadata block (e.g., “title: My Title”) can become <code>\title</code>, <code>\author</code>, etc., in LaTeX. Use <code>-s</code> or <code>--standalone</code> to generate a title page and call <code>\maketitle</code>.
+
+---
+
+### 14) Raw LaTeX
+
+Pandoc passes raw LaTeX through if you’re converting to LaTeX or PDF. For example:
+
+```
+\newpage
+```
+
+remains <code>\newpage</code> in the output.
+
+---
+
 
