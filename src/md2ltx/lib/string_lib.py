@@ -30,7 +30,7 @@ logo_string = r"""
 help_string = r"""
 # md2ltx
 
-A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Requires a pip virtual environment in Ubuntu/ Debian based OS.
+A command-line tool for converting Markdown to LateX-formatted PDF via Pandoc. Requires a pip virtual environment in Ubuntu/ Debian based OS.
 
 ## 1. Quickstart
 
@@ -48,7 +48,7 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 
 • `--open`: Open the resulting PDF in the system’s default viewer.  
 
-• `--template &lt;template_name&gt;`: Specify a built-in templates by name. Available templates: "one-column-article", "two-column-article", "report", "slides", "letter").
+• `--template template_name`: Specify a built-in templates by name. Available templates: "one-column-article", "two-column-article", "report", "slides", "letter").
 
 • `--help`: Access documentation.
 
@@ -58,8 +58,8 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 
 md2ltx can inject Markdown content into a LaTeX “template” that defines the overall look and structure of the PDF. You can choose from these built-in templates:
 
-• "two-column-article"  
 • "one-column-article"  
+• "two-column-article"  
 • "report"  
 • "slides"  
 • "letter"

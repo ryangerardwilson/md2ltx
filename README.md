@@ -1,6 +1,6 @@
 # md2ltx
 
-A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Requires a pip virtual environment in Ubuntu/ Debian based OS.
+A command-line tool for converting Markdown to LateX-formatted PDF via Pandoc. Requires a pip virtual environment in Ubuntu/ Debian based OS.
 
 ## 1. Quickstart
 
