@@ -8,6 +8,7 @@ dist/
 *.egg-info/
 *.swp
 *.env.local
+*.tmp
 
 # Ignore others
 dist
