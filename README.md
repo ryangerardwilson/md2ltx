@@ -22,13 +22,45 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 
 • `--help`: Access documentation.
 
+--------------------------------------------------------------------------------
+
 ## 2. Templates
 
-md2ltx supports injecting Markdown content into a LaTeX “template” that defines the overall look and structure of the PDF. 
+md2ltx can inject Markdown content into a LaTeX “template” that defines the overall look and structure of the PDF. You can choose from these built-in templates:
 
-You can choose one of the built-in templates: "two-column". Using the “--template” flag tells Pandoc to load and apply that LaTeX template. Inside the template, Pandoc replaces special variables like `$title$`, `$author$`, `$date$`, and `$body$` with metadata and the converted Markdown content.
+• "two-column"  
+• "one-column"  
+• "report"  
+• "slides"  
+• "letter"
 
-Pandoc reads title, author, and date from the YAML metadata block at the top of your Markdown file. For example:
+When you run md2ltx (or Pandoc directly), you can specify the template with the “--template” flag. Pandoc then loads that template, replacing special variables like $title$, $author$, $date$, and $body$ with metadata and the converted Markdown content.
+
+### 2.1. Common Fields in the YAML Metadata
+
+• two-column / one-column / report:  
+  - title: Title of your document  
+  - author: Author name(s)  
+  - date: Date displayed below the author(s)
+
+• slides (Beamer presentations):  
+  - title: Presentation title  
+  - subtitle: (Optional) subtitle for your presentation  
+  - author: Presenter name(s)  
+  - date: Date (often included on the title slide)
+
+• letter:  
+  - author: Sender’s name (also used in \signature)  
+  - address: Sender’s address  
+  - date: Date displayed in the letter  
+  - recipient: Recipient name or address  
+  - greeting: Opening phrase (e.g., “Dear John,”)  
+  - closing: Closing phrase (e.g., “Regards,”)
+
+-------------------------------------------------------------------------------
+### 2.2. Using the Templates
+
+Pandoc reads these fields from a YAML block at the top of your Markdown file. For example:
 
     ---
     title: "My Awesome Title"
@@ -36,45 +68,13 @@ Pandoc reads title, author, and date from the YAML metadata block at the top of 
     date: "October 4, 2023"
     ---
 
-    # Sample Document
+When you run md2ltx:
 
-    This is a **Markdown** document to test `compile_markdown_to_pdf` from `main.py`.
+    md2ltx my_document.md --template=two-column
 
-    ## Advantages of Markdown
+Pandoc loads the chosen “two-column” template, substitutes $title$, $author$, $date$, and $body$, and then compiles a PDF. The same process applies to any of the provided templates.
 
-    - Easy to write
-    - Human-readable
-    - Widely supported
-
-    ## Conclusion
-
-    Markdown is fantastic!
-
-
-Pandoc will inject your Markdown content where  `$body$` is defined, and the YAML metadata (title, author, date) will appear in your final PDF, as below.
-
-    \documentclass[twocolumn]{article}
-    \usepackage[utf8]{inputenc}
-    \usepackage[T1]{fontenc}
-    \usepackage{lmodern}
-
-    \usepackage[unicode=true]{hyperref}
-    \providecommand{\tightlist}{
-      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
-    }
-
-    \title{$title$}
-    \author{$author$}
-    \date{$date$}
-
-    \begin{document}
-    \maketitle
-
-    $body$
-
-    \end{document}
-
----
+---------------------------------------------------------------------------------
 
 ## 3. General Pandoc Tranformations
 

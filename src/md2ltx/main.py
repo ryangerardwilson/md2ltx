@@ -10,30 +10,6 @@ from typing import Optional
 
 from md2ltx.lib.string_lib import logo_string, help_string
 
-templates = {
-    "two-column": r"""
-\documentclass[twocolumn]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-
-\usepackage[unicode=true]{hyperref}
-\providecommand{\tightlist}{
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
-}
-
-\title{$title$}
-\author{$author$}
-\date{$date$}
-
-\begin{document}
-\maketitle
-
-$body$
-
-\end{document}
-""",
-}
 
 
 def compile_markdown_to_pdf(
@@ -123,6 +99,111 @@ def compile_markdown_to_pdf(
         except Exception as e:
             print(f"Unable to open PDF automatically: {str(e)}")
 
+
+templates = {
+    "two-column-article": r"""
+\documentclass[twocolumn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[unicode=true]{hyperref}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+$body$
+\end{document}
+""",
+
+    "one-column-article": r"""
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[lmargin=1in,rmargin=1in]{geometry}
+\usepackage[unicode=true]{hyperref}
+\usepackage{lmodern}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+$body$
+\end{document}
+    """,
+
+        "report": r"""
+\documentclass{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage[unicode=true]{hyperref}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+\tableofcontents
+$body$
+\end{document}
+    """,
+
+        "slides": r"""
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[unicode=true]{hyperref}
+\title{$title$}
+\subtitle{$subtitle$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\begin{frame}
+\titlepage
+\end{frame}
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+$body$
+\end{document}
+    """,
+
+        "letter": r"""
+\documentclass{letter}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\signature{$author$}
+\address{$address$}
+\date{$date$}
+
+\begin{document}
+\begin{letter}{$recipient$}
+\opening{$greeting$}
+$body$
+\closing{$closing$}
+\end{letter}
+\end{document}
+    """
+    }
+
+
     # Basic check – must be a .md file
     if not source_file.endswith('.md'):
         print("Error: The source file must be a Markdown (.md) file.")
@@ -137,6 +218,9 @@ def compile_markdown_to_pdf(
 
     temp_dir = None
     final_pdf_path = None
+
+
+
 
     try:
         progress_bar = tqdm(
@@ -196,20 +280,34 @@ def compile_markdown_to_pdf(
         if temp_dir and os.path.isdir(temp_dir):
             shutil.rmtree(temp_dir)
 
-
 def install_pandoc_and_latex():
     """
-    Install pandoc and the full TeX Live package on an Ubuntu-like system
-    (requires sudo privileges). Adjust or extend for other operating systems.
+    Install pandoc and a set of essential TeX Live packages on an Ubuntu-like system
+    (requires sudo privileges). This approach is more minimal than installing texlive-full,
+    yet covers most common needs.
+    
+    # List of essential packages commonly used for LaTeX documents:
+    #   texlive-latex-base           -> Basic LaTeX
+    #   texlive-latex-recommended    -> Common document classes, packages (graphics, etc.)
+    #   texlive-latex-extra          -> Extra packages often needed (like fancyhdr, wrapfig, etc.)
+    #   texlive-fonts-recommended    -> Good set of fonts
+    # You can add or remove packages if you find you need something more specialized.
     """
-    print("Attempting to install pandoc and the full TeX Live distribution...")
+    packages = [
+        "pandoc",
+        "texlive-latex-base",
+        "texlive-latex-recommended",
+        "texlive-latex-extra",
+        "texlive-fonts-recommended"
+    ]
+
+    print("Attempting to install pandoc and a minimal TeX Live set of packages...")
     try:
         subprocess.run(["sudo", "apt-get", "update"], check=True)
-        subprocess.run(["sudo", "apt-get", "-y", "install", "pandoc", "texlive-full"], check=True)
-        print("Installation of pandoc and full TeX Live completed.")
+        subprocess.run(["sudo", "apt-get", "-y", "install"] + packages, check=True)
+        print("Installation of pandoc and a minimal TeX Live environment completed.")
     except subprocess.CalledProcessError as e:
         print(f"Installation failed: {e}")
-
 
 def main():
     print(logo_string)
