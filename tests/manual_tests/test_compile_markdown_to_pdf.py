@@ -39,7 +39,7 @@ Markdown is fantastic!
         # Example usage:
         # compile_markdown_to_pdf(source_file, output_pdf, open_file, save_file)
         # 1) Save to output_pdf_path and also open it:
-        compile_markdown_to_pdf(temp_md_path, output_pdf_path, open_file=True, save_file=True)
+        compile_markdown_to_pdf(temp_md_path, output_pdf_path, open_file=True)
 
         # 2) If you wanted to just open without saving, you could do:
         # compile_markdown_to_pdf(temp_md_path, open_file=True, save_file=False)

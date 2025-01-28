@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-from typing import Optional
 import sys
 import subprocess
 import os
@@ -7,27 +5,31 @@ import tempfile
 from tqdm import tqdm
 import time
 import argparse
-from lib.help_lib import help_string
+import shutil
+from typing import Optional
 
+from md2ltx.lib.string_lib import logo_string, help_string
 
 def compile_markdown_to_pdf(
     source_file: str,
     output_pdf: Optional[str] = None,
-    open_file: bool = False,
-    save_file: bool = False
+    open_file: bool = False
 ) -> None:
     """
     Compiles a Markdown file to a PDF using pdflatex, optionally saving or opening the file.
-    Includes three nested helper functions, each returning something.
 
     1) convert_markdown_to_latex: Converts Markdown to LaTeX (side effect: writes .tex file).
     2) run_pdflatex: Runs pdflatex twice (side effect: writes .pdf file).
     3) open_pdf: Opens the PDF with the system's default viewer.
 
+    Behavior:
+    - If output_pdf is provided, the PDF will be placed there (and kept).
+    - If no output_pdf is provided, it is written to the current working directory
+      as <source_file_basename>.pdf, opened if requested, and then removed afterward.
+
     :param source_file: The input Markdown file path.
-    :param output_pdf: The output PDF file path (if saving).
+    :param output_pdf: The output PDF file path (optional).
     :param open_file: Whether to open the generated PDF in the system's default viewer.
-    :param save_file: Whether to move the PDF out of the temp location into output_pdf.
     :return: None. Side effects are writing files and optionally opening the PDF.
     """
 
@@ -63,25 +65,26 @@ def compile_markdown_to_pdf(
                 os.startfile(pdf_path)  # type: ignore
             elif os.name == 'posix':
                 subprocess.run(['xdg-open', pdf_path], check=False)
-            #return f"Opened PDF: {pdf_path}"
-            
         except Exception as e:
             print(f"Unable to open PDF automatically: {str(e)}")
 
+    # Basic check – must be a .md file
     if not source_file.endswith('.md'):
-        print("The source file must be a Markdown (.md) file.")
+        print("Error: The source file must be a Markdown (.md) file.")
         sys.exit(1)
 
     total_steps = 3  # 1) pandoc, 2) pdflatex pass, 3) second pdflatex pass
     delay_per_step = 1
 
+    # Step 1: Convert Markdown to a temporary .tex file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".tex") as temp_tex_file:
         temp_tex_path: str = temp_tex_file.name
 
-    final_pdf_path = ""
+    temp_dir = None
+    final_pdf_path = None
+    remove_after_open = False  # Will become True if no output_pdf is provided
 
     try:
-        # Set leave=False so that the progress bar does not remain or reprint at completion
         progress_bar = tqdm(
             total=total_steps,
             desc='Boom! Boom! Boom!',
@@ -90,48 +93,59 @@ def compile_markdown_to_pdf(
             bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]'
         )
 
-        # Step 1
         convert_markdown_to_latex(source_file, temp_tex_path)
         time.sleep(delay_per_step)
         progress_bar.update(1)
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Step 2 & 3
-            generated_pdf: str = run_pdflatex(temp_tex_path, temp_dir)
-            time.sleep(delay_per_step)
-            progress_bar.update(1)
+        # Create a temporary directory for pdflatex output
+        temp_dir = tempfile.mkdtemp()
 
-            time.sleep(delay_per_step)
-            progress_bar.update(1)
+        # Run pdflatex
+        generated_pdf = run_pdflatex(temp_tex_path, temp_dir)
+        time.sleep(delay_per_step)
+        progress_bar.update(1)
 
-            if not os.path.exists(generated_pdf):
-                print("\nPDF was not generated as expected.")
-                sys.exit(1)
+        time.sleep(delay_per_step)
+        progress_bar.update(1)
 
-            if output_pdf is None:
-                # Default to source_file.pdf if no output path given
-                output_pdf = os.path.splitext(source_file)[0] + ".pdf"
+        if not os.path.exists(generated_pdf):
+            print("\nPDF was not generated as expected.")
+            sys.exit(1)
 
-            if save_file:
-                os.rename(generated_pdf, output_pdf)
-                final_pdf_path = output_pdf
-            else:
-                final_pdf_path = generated_pdf
+        # If no output path is given, store in current working dir (pwd) & remove after opening
+        if output_pdf is None:
+            pdf_basename = os.path.splitext(os.path.basename(source_file))[0] + ".pdf"
+            final_pdf_path = os.path.join(os.getcwd(), pdf_basename)
+            # remove_after_open = True
+        else:
+            final_pdf_path = output_pdf
 
-            if open_file:
-                open_pdf(final_pdf_path)
-                # print(status_message)
+        # Move PDF to final path
+        if os.path.exists(final_pdf_path):
+            os.remove(final_pdf_path)
+        os.rename(generated_pdf, final_pdf_path)
 
-        # progress_bar.close()
+        # Open if requested
+        if open_file:
+            open_pdf(final_pdf_path)
 
         print(f"PDF generated at: {final_pdf_path}")
 
     except subprocess.CalledProcessError as e:
         print(f"\nError during compilation: {e}")
         sys.exit(1)
+
     finally:
         if os.path.exists(temp_tex_path):
             os.remove(temp_tex_path)
+
+        if temp_dir and os.path.isdir(temp_dir):
+            shutil.rmtree(temp_dir)
+
+        # If we used a local PDF with no user-specified output, remove it afterward
+        # if remove_after_open and final_pdf_path and os.path.exists(final_pdf_path):
+        #    os.remove(final_pdf_path)
+
 
 def install_pandoc_and_latex():
     """
@@ -148,6 +162,8 @@ def install_pandoc_and_latex():
 
 
 def main():
+    print(logo_string)
+
     parser = argparse.ArgumentParser(
         description="Compile a Markdown (.md) file to PDF using pandoc and pdflatex.",
         add_help=False
@@ -159,9 +175,9 @@ def main():
         help="Show the help message and exit."
     )
     parser.add_argument(
-        "--install",
+        "--install_dependencies",
         action="store_true",
-        help="Install pandoc and TeX Live (Ubuntu/Debian). Then set up the symbolic link '/usr/local/bin/md2ltx'."
+        help="Install pandoc and TeX Live (Ubuntu/Debian)."
     )
 
     parser.add_argument(
@@ -173,52 +189,45 @@ def main():
         "output_pdf",
         nargs="?",
         default=None,
-        help="Path to the output PDF file (optional). If omitted, uses default naming."
+        help="Path to the output PDF file (optional). If omitted, a temp PDF is created in the current directory and removed afterward."
     )
     parser.add_argument(
         "--open",
         action="store_true",
         help="Open the resulting PDF with the system's default viewer."
     )
-    parser.add_argument(
-        "--save",
-        action="store_true",
-        help="Save the resulting PDF to the specified output path (otherwise a temp file)."
-    )
 
     args = parser.parse_args()
 
-    # If --help was passed, show custom help and exit.
+    # If --help was passed, show custom help and exit
     if args.help:
         print(help_string)
         sys.exit(0)
 
-    # If --install was passed, attempt software install and symlink, then exit.
+    # If --install was passed, attempt software install, then exit
     if args.install_dependencies:
         install_pandoc_and_latex()
         print("\nDependencies installed. Re-run md2ltx without --install to compile documents.")
         sys.exit(0)
 
-    # Minimal sanity check.
+    # Minimal sanity check
     if not args.source_file:
         print("Error: A source markdown file is required. Try --help for usage.")
         sys.exit(1)
 
-    # Check that file exists.
+    # Check that file exists
     if not os.path.exists(args.source_file):
         print(f"Error: No such file: {args.source_file}")
         sys.exit(1)
 
-    # Actually compile:
+    # Compile
     compile_markdown_to_pdf(
         source_file=args.source_file,
         output_pdf=args.output_pdf,
-        open_file=args.open,
-        save_file=args.save
+        open_file=args.open
     )
 
 
 if __name__ == "__main__":
     main()
-
 
