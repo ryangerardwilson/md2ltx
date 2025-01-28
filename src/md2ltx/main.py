@@ -269,7 +269,7 @@ def main():
 
     # Minimal sanity check
     if not args.source_file:
-        print("Error: A source markdown file is required. Try --help for usage.")
+        print("A source markdown file is required. Try --help for usage.")
         sys.exit(1)
 
     # Check that file exists
