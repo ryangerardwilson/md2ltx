@@ -2,23 +2,21 @@
 
 A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Requires a pip virtual environment in Ubuntu/ Debian based OS.
 
-## 1. Installation
+## 1. Quickstart
+
+### 1.1. Installation
 
     pip install md2ltx; md2ltx --install_dependencies
 
-## Usage
+### 1.2. Usage
 
     md2ltx [source.md] [output.pdf] [--open] [--help]
-
-## Positional Arguments
 
 • <strong>source_file</strong>  
   Path to the input Markdown (.md) file.  
 
 • <strong>output_pdf</strong> (optional)  
   Path to the output PDF file. If omitted, a default name is derived from the source file, and the working directory is assumed to be the path.  
-
-## Optional Switches
 
 • <strong>--open</strong>  
   Open the resulting PDF in the system’s default viewer.  
@@ -34,8 +32,6 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 md2ltx supports injecting Markdown content into a LaTeX “template” that defines the overall look and structure of the PDF. 
 
 You can choose one of the built-in templates: "two-column". Using the “--template” flag tells Pandoc to load and apply that LaTeX template. Inside the template, Pandoc replaces special variables like `$title$`, `$author$`, `$date$`, and `$body$` with metadata and the converted Markdown content.
-
-### Specifying Title, Author, and Date
 
 Pandoc reads title, author, and date from the YAML metadata block at the top of your Markdown file. For example:
 
