@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "md2ltx"             
+version = "0.0.1"        
+description = "Convert Markdown (.md) files to PDF ..."
+readme = "README.md"
+requires-python = ">=3.12"
+
+authors = [
+{ name = "Ryan Gerard Wilson", email = "info@ryangerardwilson.com" }
+]
+
+# Dependencies needed at runtime
+dependencies = [
+"tqdm",
+# plus anything else e.g. "argparse" is in the stdlib so no need to list
+]
+
+# Where your code is located:
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.urls]
+Homepage = "https://github.com/ryangerardwilson/md2ltx"
+Issues = "https://github.com/ryangerardwilson/md2ltx"
+

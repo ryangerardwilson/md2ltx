@@ -7,7 +7,8 @@ import tempfile
 # flake8: noqa: E402
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from main import compile_markdown_to_pdf
+
+from src.md2ltx.main import compile_markdown_to_pdf
 
 def test_compile_markdown_to_pdf():
     markdown_content = r"""

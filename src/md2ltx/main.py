@@ -133,67 +133,35 @@ def compile_markdown_to_pdf(
         if os.path.exists(temp_tex_path):
             os.remove(temp_tex_path)
 
-def setup_md2ltx_symlink():
+def install_pandoc_and_latex():
     """
-    Ensures the current script is executable (chmod +x) and sets up a symbolic link
-    "/usr/local/bin/md2ltx" -> <this script's location>, unless it already exists.
-
-    Requires root privileges or suitable permissions for /usr/local/bin.
+    Install pandoc and a minimal TeX Live package on an Ubuntu-like system
+    (requires sudo privileges). Adjust or extend for other operating systems.
     """
-    # 1) Make sure our script is executable
-    script_path = os.path.realpath(__file__)
-    if not os.access(script_path, os.X_OK):
-        try:
-            print(f"Making the script executable: {script_path}")
-            subprocess.run(["chmod", "+x", script_path], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Failed to chmod +x on {script_path}\n{e}")
-            return
-    # else:
-        # print(f"Script '{script_path}' is already executable. Skipping chmod +x.")
-
-    # 2) Create or update the symlink in /usr/local/bin
-    symlink_path = "/usr/local/bin/md2ltx"
-    if os.path.islink(symlink_path) or os.path.exists(symlink_path):
-        # Optional: Check if it already points to our script
-        current_target = ""
-        if os.path.islink(symlink_path):
-            current_target = os.readlink(symlink_path)
-
-        if current_target == script_path:
-            # print(f"Symbolic link '{symlink_path}' already points to this script. Skipping creation.")
-            return
-        else:
-            print(f"Removing existing file/link at '{symlink_path}' to update.")
-            try:
-                subprocess.run(["sudo", "rm", "-f", symlink_path], check=True)
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to remove existing file or link at '{symlink_path}'.\n{e}")
-                return
-
-    # Now create the symlink
+    print("Attempting to install pandoc and a minimal TeX Live distribution...")
     try:
-        print(f"Creating symbolic link: {symlink_path} -> {script_path}")
-        subprocess.run(["sudo", "ln", "-s", script_path, symlink_path], check=True)
+        subprocess.run(["sudo", "apt-get", "update"], check=True)
+        subprocess.run(["sudo", "apt-get", "-y", "install", "pandoc", "texlive-latex-base"], check=True)
+        print("Installation of pandoc and TeX Live completed.")
     except subprocess.CalledProcessError as e:
-        print(f"Failed to create symbolic link at {symlink_path}.\n{e}")
+        print(f"Installation failed: {e}")
 
 
 def main():
-
-    setup_md2ltx_symlink()
-
-    # We disable the default --help by setting add_help=False
     parser = argparse.ArgumentParser(
-        description="Compile a Markdown (.md) file to PDF using Pandoc and pdflatex.",
+        description="Compile a Markdown (.md) file to PDF using pandoc and pdflatex.",
         add_help=False
     )
 
-    # Define a custom --help flag
     parser.add_argument(
         "--help",
         action="store_true",
         help="Show the help message and exit."
+    )
+    parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Install pandoc and TeX Live (Ubuntu/Debian). Then set up the symbolic link '/usr/local/bin/md2ltx'."
     )
 
     parser.add_argument(
@@ -201,52 +169,53 @@ def main():
         nargs="?",
         help="Path to the input Markdown file."
     )
-
     parser.add_argument(
         "output_pdf",
         nargs="?",
         default=None,
         help="Path to the output PDF file (optional). If omitted, uses default naming."
     )
-
     parser.add_argument(
         "--open",
         action="store_true",
         help="Open the resulting PDF with the system's default viewer."
     )
-
     parser.add_argument(
         "--save",
         action="store_true",
         help="Save the resulting PDF to the specified output path (otherwise a temp file)."
     )
 
-    # Parse arguments
     args = parser.parse_args()
 
-    # If --help was passed, print our custom help string from help.py and exit.
+    # If --help was passed, show custom help and exit.
     if args.help:
         print(help_string)
         sys.exit(0)
 
-    # A minimal sanity check; if source_file isn't provided, show an error
+    # If --install was passed, attempt software install and symlink, then exit.
+    if args.install_dependencies:
+        install_pandoc_and_latex()
+        print("\nDependencies installed. Re-run md2ltx without --install to compile documents.")
+        sys.exit(0)
+
+    # Minimal sanity check.
     if not args.source_file:
-        # print("Error: A source markdown file is required.")
-        print("Use '--help' for more information.")
+        print("Error: A source markdown file is required. Try --help for usage.")
         sys.exit(1)
 
-    # If the source file doesn't exist, let user know
+    # Check that file exists.
     if not os.path.exists(args.source_file):
-        print(f"Error: No such file '{args.source_file}'")
+        print(f"Error: No such file: {args.source_file}")
         sys.exit(1)
 
+    # Actually compile:
     compile_markdown_to_pdf(
         source_file=args.source_file,
         output_pdf=args.output_pdf,
         open_file=args.open,
         save_file=args.save
     )
-
 
 
 if __name__ == "__main__":
