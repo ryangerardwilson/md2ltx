@@ -99,26 +99,7 @@ def compile_markdown_to_pdf(
         except Exception as e:
             print(f"Unable to open PDF automatically: {str(e)}")
 
-
-templates = {
-    "two-column-article": r"""
-\documentclass[twocolumn]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage[unicode=true]{hyperref}
-\providecommand{\tightlist}{
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
-}
-\title{$title$}
-\author{$author$}
-\date{$date$}
-
-\begin{document}
-\maketitle
-$body$
-\end{document}
-""",
+    templates = {
 
     "one-column-article": r"""
 \documentclass{article}
@@ -139,6 +120,25 @@ $body$
 $body$
 \end{document}
     """,
+
+    "two-column-article": r"""
+\documentclass[twocolumn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[unicode=true]{hyperref}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+$body$
+\end{document}
+""",
 
         "report": r"""
 \documentclass{report}
@@ -202,7 +202,6 @@ $body$
 \end{document}
     """
     }
-
 
     # Basic check – must be a .md file
     if not source_file.endswith('.md'):

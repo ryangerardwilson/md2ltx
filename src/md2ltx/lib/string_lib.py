@@ -48,7 +48,7 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 
 • `--open`: Open the resulting PDF in the system’s default viewer.  
 
-• `--template &lt;template_name&gt;`: Specify a built-in templates by name. Available templates: “two-column”).
+• `--template &lt;template_name&gt;`: Specify a built-in templates by name. Available templates: "one-column-article", "two-column-article", "report", "slides", "letter").
 
 • `--help`: Access documentation.
 
@@ -58,8 +58,8 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 
 md2ltx can inject Markdown content into a LaTeX “template” that defines the overall look and structure of the PDF. You can choose from these built-in templates:
 
-• "two-column"  
-• "one-column"  
+• "two-column-article"  
+• "one-column-article"  
 • "report"  
 • "slides"  
 • "letter"
@@ -68,7 +68,7 @@ When you run md2ltx (or Pandoc directly), you can specify the template with the 
 
 ### 2.1. Common Fields in the YAML Metadata
 
-• two-column / one-column / report:  
+• one-column-article/ two-column-article / report:  
   - title: Title of your document  
   - author: Author name(s)  
   - date: Date displayed below the author(s)
@@ -98,11 +98,25 @@ Pandoc reads these fields from a YAML block at the top of your Markdown file. Fo
     date: "October 4, 2023"
     ---
 
+    # Sample Document
+
+    This is a **Markdown** document to test `compile_markdown_to_pdf` from `main.py`.
+
+    ## Advantages of Markdown
+
+    - Easy to write
+    - Human-readable
+    - Widely supported
+
+    ## Conclusion
+
+    Markdown is fantastic!
+
 When you run md2ltx:
 
-    md2ltx my_document.md --template=two-column
+    md2ltx my_document.md --template=two-column-article
 
-Pandoc loads the chosen “two-column” template, substitutes $title$, $author$, $date$, and $body$, and then compiles a PDF. The same process applies to any of the provided templates.
+Pandoc loads the chosen “two-column-article” template, substitutes $title$, $author$, $date$, and $body$, and then compiles a PDF. The same process applies to any of the provided templates.
 
 ---------------------------------------------------------------------------------
 
