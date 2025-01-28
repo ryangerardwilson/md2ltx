@@ -10,5 +10,6 @@ dist/
 *.env.local
 
 # Ignore others
+dist
 *.pdf
 
