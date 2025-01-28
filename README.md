@@ -12,20 +12,15 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 
     md2ltx [source.md] [output.pdf] [--open] [--help]
 
-• <strong>source_file</strong>  
-  Path to the input Markdown (.md) file.  
+• `source_file`: Path to the input Markdown (.md) file.  
 
-• <strong>output_pdf</strong> (optional)  
-  Path to the output PDF file. If omitted, a default name is derived from the source file, and the working directory is assumed to be the path.  
+• `output_pdf` (optional): Path to the output PDF file. If omitted, a default name is derived from the source file, and the working directory is assumed to be the path.  
 
-• <strong>--open</strong>  
-  Open the resulting PDF in the system’s default viewer.  
+• `--open`: Open the resulting PDF in the system’s default viewer.  
 
-• <strong>--template &lt;template_name&gt;</strong>  
-  Specify a built-in templates by name. Available templates: “two-column”).
+• `--template &lt;template_name&gt;`: Specify a built-in templates by name. Available templates: “two-column”).
 
-• <strong>--help</strong>  
-  Show this help message and exit.  
+• `--help`: Access documentation.
 
 ## 2. Templates
 
