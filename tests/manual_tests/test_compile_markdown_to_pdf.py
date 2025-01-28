@@ -31,7 +31,14 @@ This is a **Markdown** document to test `compile_markdown_to_pdf` from `main.py`
 
 ## Conclusion
 
-Markdown is fantastic!
+Markdown is fantastic! <e{
+import math
+
+def evaluate() -> str:
+    val = math.sqrt(16)
+    return f"The square root of 16 is {val}"
+}e>
+
     """
 
     # Create a temporary Markdown file

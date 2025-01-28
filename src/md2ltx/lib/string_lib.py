@@ -120,13 +120,63 @@ Pandoc loads the chosen “two-column-article” template, substitutes $title$, 
 
 ---------------------------------------------------------------------------------
 
-## 3. General Pandoc Tranformations
+## 3. Embedded Python Code with `<e{ … }e>`
+
+md2ltx also supports executing small Python code blocks inline with your Markdown, then replacing those blocks with the code’s return value. This is done via special tags in your Markdown:
+
+    <e{
+    # Python code here
+    }e>
+
+### 3.1. Requirements
+
+• You must define exactly one function named `evaluate()`, which returns a string.  
+• No need to call `evaluate()` yourself; md2ltx will call it automatically.  
+• Any leading or trailing whitespace in the returned string is trimmed.  
+• Access to certain libraries are available in the `<e{ ... }e>` Python environment (math, pandas as pd, numpy as np, rgwfuncs) and do not need to be imported.
+
+### 3.2. Example Usage
+
+Suppose you want to compute the square root of 16 using the math library:
+
+    <e{
+    def my_result() -> str:
+        val = math.sqrt(16)
+        return f"The square root of 16 is {val}"
+    }e>
+
+When md2ltx processes this Markdown, it will:  
+
+1. Extract the Python code between `<e{ and }e>`.  
+2. Execute it in an environment where math, pd, np, and rgwfuncs are already available.  
+3. Call `evaluate()` for you.  
+4. Replace the entire `<e{ … }e>` block in the final PDF with the string returned by my_result().  
+
+So, in the final PDF, you’ll see:
+
+    The square root of 16 is 4.0
+
+### 3.3. Another Example (Pandas, Numpy)
+
+    <e{
+    def my_result() -> str:
+        data = np.array([1,2,3,4])
+        s = pd.Series(data)
+        mean_val = s.mean()
+        return f"The mean of [1,2,3,4] is {mean_val}"
+    }e>
+
+Here, we use numpy arrays `np.array()`, and a pandas Series `pd.Series`. md2ltx automatically provides np and pd in the environment without requiring separate imports.
+
+--------------------------------------------------------------------------------
+
+## 4. General Pandoc Tranformations
 
 md2ltx uses Pandoc to transform Markdown files into LaTeX, which pdflatex then uses to generate a final PDF. This workflow supports most of Markdown’s core syntax plus many Pandoc extensions. Below is a high-level overview of how Pandoc typically converts various Markdown constructs into LaTeX. For full details, refer to Pandoc’s official documentation.
 
 ---
 
-### 3.1. Headings
+### 4.1. Headings
 
 • <strong>Markdown</strong>  
   <pre><code># Heading 1  
@@ -142,7 +192,7 @@ Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on th
 
 ---
 
-### 3.2. Emphasis &amp; Strong Emphasis
+### 4.2. Emphasis &amp; Strong Emphasis
 
 • <strong>Markdown</strong>  
   <pre><code>*emphasis* or _emphasis_  
@@ -154,7 +204,7 @@ Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on th
 
 ---
 
-### 3.3. Inline Code
+### 4.3. Inline Code
 
 • <strong>Markdown</strong>  
   <pre><code>`inline code`</code></pre>
@@ -164,7 +214,7 @@ Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on th
 
 ---
 
-### 3.4. Code Blocks
+### 4.4. Code Blocks
 
 • <strong>Markdown (fenced)</strong>  
   <pre><code>```  
@@ -182,7 +232,7 @@ With certain options, Pandoc can use different LaTeX environments (e.g., listing
 
 ---
 
-### 3.5. Lists
+### 4.5. Lists
 
 • <strong>Unordered (Markdown)</strong>  
   <pre><code>- item 1  
@@ -208,7 +258,7 @@ With certain options, Pandoc can use different LaTeX environments (e.g., listing
 
 ---
 
-### 3.6. Links &amp; Images
+### 4.6. Links &amp; Images
 
 • <strong>Link (Markdown)</strong>  
   <pre><code>[Pandoc](https://pandoc.org)</code></pre>
@@ -226,7 +276,7 @@ By default, <code>\includegraphics</code> is placed without floats. You can add 
 
 ---
 
-### 3.7. Blockquotes
+### 4.7. Blockquotes
 
 • <strong>Markdown</strong>  
   <pre><code>> This is a blockquote.</code></pre>
@@ -238,7 +288,7 @@ This is a blockquote.
 
 ---
 
-### 3.8. Horizontal Rules
+### 4.8. Horizontal Rules
 
 • <strong>Markdown</strong>  
   <pre><code>---  
@@ -250,7 +300,7 @@ ___</code></pre>
 
 ---
 
-### 3.9. Footnotes (Pandoc Extension)
+### 4.9. Footnotes (Pandoc Extension)
 
 • <strong>Markdown</strong>  
   <pre><code>This is some text with a footnote.[^1]
@@ -262,7 +312,7 @@ ___</code></pre>
 
 ---
 
-### 3.10. Tables
+### 4.10. Tables
 
 • <strong>Markdown (simple pipe table)</strong>  
   <pre><code>| Column1 | Column2 |  
@@ -285,7 +335,7 @@ Val3    & Val4    \\
 
 ---
 
-### 3.11. Math &amp; LaTeX Blocks
+### 4.11. Math &amp; LaTeX Blocks
 
 • <strong>Inline Math</strong>  
   <pre><code>$E = mc^2$</code></pre>
@@ -305,13 +355,13 @@ E = mc^2
 
 ---
 
-### 3.12. Citations &amp; Bibliographies
+### 4.12. Citations &amp; Bibliographies
 
 Pandoc can handle citations if you provide a bibliography file. A reference like <code>[@smith2009]</code> can become <code>\cite{smith2009}</code> or <code>\autocite</code> depending on the style and Pandoc’s command-line options.
 
 ---
 
-### 3.14. Raw LaTeX
+### 4.14. Raw LaTeX
 
 Pandoc passes raw LaTeX through if you’re converting to LaTeX or PDF. For example:
 

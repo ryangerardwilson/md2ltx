@@ -1,12 +1,19 @@
 import sys
 import subprocess
 import os
+import re
 import tempfile
 from tqdm import tqdm
 import time
 import argparse
 import shutil
 from typing import Optional
+import math
+import pandas as pd
+import numpy as np
+import rgwfuncs  # Make sure this is installed and importable
+
+
 
 from md2ltx.lib.string_lib import logo_string, help_string
 
@@ -35,6 +42,68 @@ def compile_markdown_to_pdf(
     :param open_file: Whether to open the generated PDF in the system's default viewer.
     :return: None. Side effects are writing files and optionally opening the PDF.
     """
+
+
+    def expand_python_in_markdown(md_path: str) -> str:
+        """
+        Reads the Markdown file, looks for <e{ ... }e> blocks,
+        runs the Python code inside them, replaces that block with the result,
+        and writes and returns the path to a temporary file with replacements.
+        """
+
+
+        def run_python_code(code_str: str) -> str:
+            """
+            Expects code_str to define exactly one function named `evaluate`,
+            which returns a string. After setting up default libraries in `env`,
+            we exec the user's code, then call evaluate() from that environment.
+            """
+            # Provide these libraries in the environment
+            env = {
+                "math": math,
+                "pd": pd,
+                "np": np,
+                "rgwfuncs": rgwfuncs
+            }
+
+            try:
+                # The user’s code defines 'my_result'
+                exec(code_str, env, env)
+            except Exception as e:
+                return f"[Error running Python code: {e}]"
+
+            # Ensure my_result is defined
+            if "evaluate" not in env:
+                return "[Error: No function named 'evaluate' was defined]"
+
+            try:
+                # Now call the user's function
+                result_val = env["evaluate"]()
+                return str(result_val).strip()
+            except Exception as e:
+                return f"[Error calling evaluate(): {e}]"
+
+
+        with open(md_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # This pattern captures everything between <e{ and }e> as group(1).
+        pattern = r"<e\{\s*(.*?)\s*\}e>"
+        
+        def replacer(match: re.Match) -> str:
+            code_block = match.group(1)
+            return run_python_code(code_block)
+
+        # Use DOTALL so that '.' matches newlines, allowing multi-line code blocks
+        new_content = re.sub(pattern, replacer, content, flags=re.DOTALL)
+
+        # Write out to a temporary Markdown file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode='w', encoding='utf-8') as temp_md_file:
+            temp_md_file.write(new_content)
+            temp_md_path = temp_md_file.name
+        
+        return temp_md_path
+
 
     def convert_markdown_to_latex(md_path: str, tex_path: str, templates: dict, template_name: Optional[str] = None) -> str:
         # Build the base Pandoc command
@@ -211,6 +280,10 @@ $body$
     total_steps = 3  # 1) pandoc, 2) pdflatex pass, 3) second pdflatex pass
     delay_per_step = 1
 
+    # — ADDED: Expand embedded Python in the original Markdown first
+    expanded_md_path = expand_python_in_markdown(source_file)
+
+
     # Step 1: Convert Markdown to a temporary .tex file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".tex") as temp_tex_file:
         temp_tex_path: str = temp_tex_file.name
@@ -230,7 +303,7 @@ $body$
             bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]'
         )
 
-        convert_markdown_to_latex(source_file, temp_tex_path, templates, template_name)
+        convert_markdown_to_latex(expanded_md_path, temp_tex_path, templates, template_name)
         time.sleep(delay_per_step)
         progress_bar.update(1)
 
