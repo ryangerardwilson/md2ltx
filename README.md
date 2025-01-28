@@ -122,9 +122,9 @@ Suppose you want to compute the square root of 16 in your Markdown, labeling tha
     Here’s the result: <EVALUATION::1>
 
     [EVALUATE::1]###################################################################
-    def evaluate() -> str:
-        val = math.sqrt(16)
-        return f"The square root of 16 is {val}"
+        def evaluate() -> str:
+            val = math.sqrt(16)
+            return f"The square root of 16 is {val}"
     [EVALUATE::1]###################################################################
 
 When md2ltx processes this:
@@ -137,14 +137,14 @@ When md2ltx processes this:
 
 Say you also define a second code block with FLAG `compute_2`:
 
-The mean is: `<EVALUATION::compute_2>`
+    The mean is: <EVALUATION::`compute_2`>
 
-    [EVALUATE::compute_2]###########################################################
-    def evaluate() -> str:
-        data = np.array([1,2,3,4])
-        s = pd.Series(data)
-        return f"{s.mean()}"
-    [EVALUATE::compute_2]###########################################################
+    [EVALUATE::`compute_2`]###########################################################
+        def evaluate() -> str:
+            data = np.array([1,2,3,4])
+            s = pd.Series(data)
+            return f"{s.mean()}"
+    [EVALUATE::`compute_2`]###########################################################
 
 Here we use a NumPy array and a pandas Series within `evaluate()`. The placeholder `<EVALUATION::compute_2>` will be replaced by the string returned, for instance “2.5.”
 

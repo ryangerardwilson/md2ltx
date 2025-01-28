@@ -31,27 +31,27 @@ This is a **Markdown** document to test `compile_markdown_to_pdf` from `main.py`
 
 ## Conclusion
 
-Markdown is fantastic! <EVALUATION::1>. Markdown is fantastic2! <EVALUATION::compute_2>.
+Markdown is fantastic! <EVALUATION::1>. Markdown is fantastic2! <EVALUATION::`compute_2`>.
 
 And this is incomingcalls: <EVALUATION::3>
 
 [EVALUATE::1]###################################################################
-def evaluate() -> str:
-    val = math.sqrt(16)
-    return f"The square root of 16 is {val}"
+    def evaluate() -> str:
+        val = math.sqrt(16)
+        return f"The square root of 16 is {val}"
 [EVALUATE::1]###################################################################
 
-[EVALUATE::compute_2]###########################################################
-def evaluate() -> str:
-    val = math.sqrt(25)
-    return f"The square root of 25 is {val}"
-[EVALUATE::compute_2]###########################################################
+[EVALUATE::`compute_2`]###########################################################
+    def evaluate() -> str:
+        val = math.sqrt(25)
+        return f"The square root of 25 is {val}"
+[EVALUATE::`compute_2`]###########################################################
 
 [EVALUATE::3]###################################################################
-def evaluate() -> str:
-    df = rgwfuncs.load_data_from_query("happy","SELECT * FROM incomingcalls LIMIT 20")
-    df_first_three_cols = df.iloc[:, :3]
-    return df_first_three_cols
+    def evaluate() -> str:
+        df = rgwfuncs.load_data_from_query("happy","SELECT * FROM incomingcalls LIMIT 20")
+        df_first_three_cols = df.iloc[:, :3]
+        return df_first_three_cols
 [EVALUATE::3]###################################################################
 
     """
