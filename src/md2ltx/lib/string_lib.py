@@ -42,11 +42,11 @@ A command-line tool for converting Markdown to LateX-formatted PDF via Pandoc. R
 
     md2ltx [source.md] [output.pdf] [--open] [--help]
 
-• `source_file`: Path to the input Markdown (.md) file.  
+• `source_file`: Path to the input Markdown (.md) file.
 
-• `output_pdf` (optional): Path to the output PDF file. If omitted, a default name is derived from the source file, and the working directory is assumed to be the path.  
+• `output_pdf` (optional): Path to the output PDF file. If omitted, a default name is derived from the source file, and the working directory is assumed to be the path.
 
-• `--open`: Open the resulting PDF in the system’s default viewer.  
+• `--open`: Open the resulting PDF in the system’s default viewer.
 
 • `--template template_name`: Specify a built-in templates by name. Available templates: "one-column-article", "two-column-article", "report", "slides", "letter").
 
@@ -58,33 +58,33 @@ A command-line tool for converting Markdown to LateX-formatted PDF via Pandoc. R
 
 md2ltx can inject Markdown content into a LaTeX “template” that defines the overall look and structure of the PDF. You can choose from these built-in templates:
 
-• "one-column-article"  
-• "two-column-article"  
-• "report"  
-• "slides"  
+• "one-column-article"
+• "two-column-article"
+• "report"
+• "slides"
 • "letter"
 
 When you run md2ltx (or Pandoc directly), you can specify the template with the “--template” flag. Pandoc then loads that template, replacing special variables like $title$, $author$, $date$, and $body$ with metadata and the converted Markdown content.
 
 ### 2.1. Common Fields in the YAML Metadata
 
-• one-column-article/ two-column-article / report:  
-  - title: Title of your document  
-  - author: Author name(s)  
+• one-column-article/ two-column-article / report:
+  - title: Title of your document
+  - author: Author name(s)
   - date: Date displayed below the author(s)
 
-• slides (Beamer presentations):  
-  - title: Presentation title  
-  - subtitle: (Optional) subtitle for your presentation  
-  - author: Presenter name(s)  
+• slides (Beamer presentations):
+  - title: Presentation title
+  - subtitle: (Optional) subtitle for your presentation
+  - author: Presenter name(s)
   - date: Date (often included on the title slide)
 
-• letter:  
-  - author: Sender’s name (also used in \signature)  
-  - address: Sender’s address  
-  - date: Date displayed in the letter  
-  - recipient: Recipient name or address  
-  - greeting: Opening phrase (e.g., “Dear John,”)  
+• letter:
+  - author: Sender’s name (also used in \signature)
+  - address: Sender’s address
+  - date: Date displayed in the letter
+  - recipient: Recipient name or address
+  - greeting: Opening phrase (e.g., “Dear John,”)
   - closing: Closing phrase (e.g., “Regards,”)
 
 -------------------------------------------------------------------------------
@@ -130,9 +130,9 @@ md2ltx also supports executing small Python code blocks inline with your Markdow
 
 ### 3.1. Requirements
 
-• You must define exactly one function named `evaluate()`, which returns a string.  
-• No need to call `evaluate()` yourself; md2ltx will call it automatically.  
-• Any leading or trailing whitespace in the returned string is trimmed.  
+• You must define exactly one function named `evaluate()`, which returns a string.
+• No need to call `evaluate()` yourself; md2ltx will call it automatically.
+• Any leading or trailing whitespace in the returned string is trimmed.
 • Access to certain libraries are available in the `<e{ ... }e>` Python environment (math, pandas as pd, numpy as np, rgwfuncs) and do not need to be imported.
 
 ### 3.2. Example Usage
@@ -145,12 +145,12 @@ Suppose you want to compute the square root of 16 using the math library:
         return f"The square root of 16 is {val}"
     }e>
 
-When md2ltx processes this Markdown, it will:  
+When md2ltx processes this Markdown, it will:
 
-1. Extract the Python code between `<e{ and }e>`.  
-2. Execute it in an environment where math, pd, np, and rgwfuncs are already available.  
-3. Call `evaluate()` for you.  
-4. Replace the entire `<e{ … }e>` block in the final PDF with the string returned by my_result().  
+1. Extract the Python code between `<e{ and }e>`.
+2. Execute it in an environment where math, pd, np, and rgwfuncs are already available.
+3. Call `evaluate()` for you.
+4. Replace the entire `<e{ … }e>` block in the final PDF with the string returned by my_result().
 
 So, in the final PDF, you’ll see:
 
@@ -178,14 +178,14 @@ md2ltx uses Pandoc to transform Markdown files into LaTeX, which pdflatex then u
 
 ### 4.1. Headings
 
-• <strong>Markdown</strong>  
-  <pre><code># Heading 1  
-## Heading 2  
+• <strong>Markdown</strong>
+  <pre><code># Heading 1
+## Heading 2
 ### Heading 3</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
-  <pre><code>\section{Heading 1}  
-\subsection{Heading 2}  
+• <strong>Pandoc → LaTeX</strong>
+  <pre><code>\section{Heading 1}
+\subsection{Heading 2}
 \subsubsection{Heading 3}</code></pre>
 
 Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on the heading level. It also supports underline-style Markdown headings with “===” or “---” for level-one and level-two headings.
@@ -194,38 +194,38 @@ Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on th
 
 ### 4.2. Emphasis &amp; Strong Emphasis
 
-• <strong>Markdown</strong>  
-  <pre><code>*emphasis* or _emphasis_  
+• <strong>Markdown</strong>
+  <pre><code>*emphasis* or _emphasis_
 **strong emphasis** or __strong emphasis__</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
-  <pre><code>\emph{emphasis}  
+• <strong>Pandoc → LaTeX</strong>
+  <pre><code>\emph{emphasis}
 \textbf{strong emphasis}</code></pre>
 
 ---
 
 ### 4.3. Inline Code
 
-• <strong>Markdown</strong>  
+• <strong>Markdown</strong>
   <pre><code>`inline code`</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
+• <strong>Pandoc → LaTeX</strong>
   <pre><code>\texttt{inline code}</code></pre>
 
 ---
 
 ### 4.4. Code Blocks
 
-• <strong>Markdown (fenced)</strong>  
-  <pre><code>```  
-a = 1  
-b = 2  
+• <strong>Markdown (fenced)</strong>
+  <pre><code>```
+a = 1
+b = 2
 ```</code></pre>
 
-• <strong>Pandoc → LaTeX (by default)</strong>  
-  <pre><code>\begin{verbatim}  
-a = 1  
-b = 2  
+• <strong>Pandoc → LaTeX (by default)</strong>
+  <pre><code>\begin{verbatim}
+a = 1
+b = 2
 \end{verbatim}</code></pre>
 
 With certain options, Pandoc can use different LaTeX environments (e.g., listings).
@@ -234,42 +234,42 @@ With certain options, Pandoc can use different LaTeX environments (e.g., listing
 
 ### 4.5. Lists
 
-• <strong>Unordered (Markdown)</strong>  
-  <pre><code>- item 1  
-- item 2  
+• <strong>Unordered (Markdown)</strong>
+  <pre><code>- item 1
+- item 2
 - item 3</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
-  <pre><code>\begin{itemize}  
-\item item 1  
-\item item 2  
-\item item 3  
+• <strong>Pandoc → LaTeX</strong>
+  <pre><code>\begin{itemize}
+\item item 1
+\item item 2
+\item item 3
 \end{itemize}</code></pre>
 
-• <strong>Ordered (Markdown)</strong>  
-  <pre><code>1. item 1  
+• <strong>Ordered (Markdown)</strong>
+  <pre><code>1. item 1
 2. item 2</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
-  <pre><code>\begin{enumerate}  
-\item item 1  
-\item item 2  
+• <strong>Pandoc → LaTeX</strong>
+  <pre><code>\begin{enumerate}
+\item item 1
+\item item 2
 \end{enumerate}</code></pre>
 
 ---
 
 ### 4.6. Links &amp; Images
 
-• <strong>Link (Markdown)</strong>  
+• <strong>Link (Markdown)</strong>
   <pre><code>[Pandoc](https://pandoc.org)</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
+• <strong>Pandoc → LaTeX</strong>
   <pre><code>\href{https://pandoc.org}{Pandoc}</code></pre>
 
-• <strong>Image (Markdown)</strong>  
+• <strong>Image (Markdown)</strong>
   <pre><code>![Alt text](image.png)</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
+• <strong>Pandoc → LaTeX</strong>
   <pre><code>\includegraphics{image.png}</code></pre>
 
 By default, <code>\includegraphics</code> is placed without floats. You can add captions or figure environments using extended syntax or metadata.
@@ -278,79 +278,79 @@ By default, <code>\includegraphics</code> is placed without floats. You can add 
 
 ### 4.7. Blockquotes
 
-• <strong>Markdown</strong>  
+• <strong>Markdown</strong>
   <pre><code>> This is a blockquote.</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
-  <pre><code>\begin{quote}  
-This is a blockquote.  
+• <strong>Pandoc → LaTeX</strong>
+  <pre><code>\begin{quote}
+This is a blockquote.
 \end{quote}</code></pre>
 
 ---
 
 ### 4.8. Horizontal Rules
 
-• <strong>Markdown</strong>  
-  <pre><code>---  
-***  
+• <strong>Markdown</strong>
+  <pre><code>---
+***
 ___</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
+• <strong>Pandoc → LaTeX</strong>
   <pre><code>\hrule</code></pre>
 
 ---
 
 ### 4.9. Footnotes (Pandoc Extension)
 
-• <strong>Markdown</strong>  
+• <strong>Markdown</strong>
   <pre><code>This is some text with a footnote.[^1]
 
 [^1]: This is the footnote text.</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
+• <strong>Pandoc → LaTeX</strong>
   <pre><code>This is some text with a footnote.\footnote{This is the footnote text.}</code></pre>
 
 ---
 
 ### 4.10. Tables
 
-• <strong>Markdown (simple pipe table)</strong>  
-  <pre><code>| Column1 | Column2 |  
-|---------|---------|  
-| Val1    | Val2    |  
+• <strong>Markdown (simple pipe table)</strong>
+  <pre><code>| Column1 | Column2 |
+|---------|---------|
+| Val1    | Val2    |
 | Val3    | Val4    |</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
-  <pre><code>\begin{table}  
-\centering  
-\begin{tabular}{ll}  
-\hline  
-Column1 & Column2 \\  
-\hline  
-Val1    & Val2    \\  
-Val3    & Val4    \\  
-\hline  
-\end{tabular}  
+• <strong>Pandoc → LaTeX</strong>
+  <pre><code>\begin{table}
+\centering
+\begin{tabular}{ll}
+\hline
+Column1 & Column2 \\
+\hline
+Val1    & Val2    \\
+Val3    & Val4    \\
+\hline
+\end{tabular}
 \end{table}</code></pre>
 
 ---
 
 ### 4.11. Math &amp; LaTeX Blocks
 
-• <strong>Inline Math</strong>  
+• <strong>Inline Math</strong>
   <pre><code>$E = mc^2$</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
+• <strong>Pandoc → LaTeX</strong>
   <pre><code>\(E = mc^2\)</code></pre>
 
-• <strong>Display Math</strong>  
-  <pre><code>$$  
-E = mc^2  
+• <strong>Display Math</strong>
+  <pre><code>$$
+E = mc^2
 $$</code></pre>
 
-• <strong>Pandoc → LaTeX</strong>  
-  <pre><code>\[  
-E = mc^2  
+• <strong>Pandoc → LaTeX</strong>
+  <pre><code>\[
+E = mc^2
 \]</code></pre>
 
 ---

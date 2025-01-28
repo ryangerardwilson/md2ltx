@@ -14,9 +14,7 @@ import numpy as np
 import rgwfuncs  # Make sure this is installed and importable
 
 
-
 from md2ltx.lib.string_lib import logo_string, help_string
-
 
 
 def compile_markdown_to_pdf(
@@ -72,12 +70,6 @@ def compile_markdown_to_pdf(
         # Read the Markdown file
         with open(md_path, 'r', encoding='utf-8') as f:
             content = f.read()
-
-        # 1) Find all code blocks of the form:
-        #    [EVALUATE::SOME_FLAG]#{3,} (any code) [EVALUATE::SOME_FLAG]#{3,}
-        # We'll capture:
-        #   group(1): The FLAG (e.g. "1", "compute_2")
-        #   group(2): The actual code between the pairs of lines
         block_pattern = re.compile(
             r"\[EVALUATE::([^\]]+)\]#{3,}\s*(.*?)\s*\[EVALUATE::\1\]#{3,}",
             re.DOTALL
@@ -94,11 +86,41 @@ def compile_markdown_to_pdf(
 
         # 2) Evaluate each code block by calling the evaluate() function
         def run_python_code(code_str: str) -> str:
-            """
-            Expects code_str to define exactly one function named `evaluate()`,
-            which returns a string. We provide a minimal environment and exec the user’s code,
-            then call evaluate() from that environment.
-            """
+
+            def dataframe_to_pandoc_pipe(df: pd.DataFrame) -> str:
+                """
+                Convert a pandas DataFrame to a Pandoc-friendly Markdown pipe table.
+                Shows the first 5 rows, then "..." row, then last 5 rows if the DataFrame
+                has more than 10 rows. Otherwise, shows all rows.
+                """
+
+                columns = df.columns
+                # Construct the table header
+                header = "| " + " | ".join(columns) + " |"
+                # Construct the separator line
+                separator = "|" + "|".join("---" for _ in columns) + "|"
+
+                # Helper to convert a single row to pipe format
+                def row_to_pipe(row_values):
+                    return "| " + " | ".join(str(x) for x in row_values) + " |"
+
+                # If the DataFrame has 10 or fewer rows, show them all
+                if len(df) <= 10:
+                    rows = [row_to_pipe(df.iloc[i]) for i in range(len(df))]
+                    return "\n".join([header, separator] + rows)
+                else:
+                    # For DataFrames with >10 rows, show the first 5
+                    head_data = df.head(5)
+                    tail_data = df.tail(5)
+
+                    head_rows = [row_to_pipe(head_data.iloc[i]) for i in range(len(head_data))]
+                    tail_rows = [row_to_pipe(tail_data.iloc[i]) for i in range(len(tail_data))]
+
+                    # Ellipsis row (same number of columns)
+                    ellipsis_row = "| " + " | ".join("..." for _ in columns) + " |"
+
+                    return "\n".join([header, separator] + head_rows + [ellipsis_row] + tail_rows)
+
             env = {
                 "math": math,
                 "pd": pd,
@@ -108,6 +130,7 @@ def compile_markdown_to_pdf(
             try:
                 exec(code_str, env, env)
             except Exception as e:
+                print(f"[ERROR] Error executing python code: {code_str} \n\n{e}")
                 return f"[Error running Python code: {e}]"
 
             if "evaluate" not in env:
@@ -115,9 +138,28 @@ def compile_markdown_to_pdf(
 
             try:
                 result_val = env["evaluate"]()
+
+                if isinstance(result_val, pd.DataFrame):
+                    df = result_val
+                    row_count, column_count = df.shape  # Get both row and column count
+                    column_names = list(df.columns)
+
+                    # Generate the Pandoc-friendly Markdown
+                    md_table = dataframe_to_pandoc_pipe(df)
+
+                    # Return columns, row count, plus the merged Markdown table
+                    return f"Dataframe (dimensions: {row_count} × {column_count}), with columns: {column_names}\n\n{md_table}"
+
                 return str(result_val).strip()
             except Exception as e:
                 return f"[Error calling evaluate(): {e}]"
+
+        def placeholder_replacer(match: re.Match) -> str:
+            found_flag = match.group(1)
+            if found_flag in code_results:
+                return code_results[found_flag]
+            else:
+                return f"[No code block found for FLAG: {found_flag}]"
 
         code_results = {}
         for flag, code_content in code_by_flag.items():
@@ -127,14 +169,9 @@ def compile_markdown_to_pdf(
         # Pattern capturing e.g. <EVALUATION::1>, <EVALUATION::compute_2>, etc.
         placeholder_pattern = re.compile(r"<EVALUATION::([^\>]+)>")
 
-        def placeholder_replacer(match: re.Match) -> str:
-            found_flag = match.group(1)
-            if found_flag in code_results:
-                return code_results[found_flag]
-            else:
-                return f"[No code block found for FLAG: {found_flag}]"
-
         final_content = placeholder_pattern.sub(placeholder_replacer, content_no_blocks)
+
+        # print("165", final_content)
 
         # Write out the modified content to a temporary markdown file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode='w', encoding='utf-8') as temp_md_file:
@@ -142,9 +179,6 @@ def compile_markdown_to_pdf(
             temp_md_path = temp_md_file.name
 
         return temp_md_path
-
-
-
 
     def convert_markdown_to_latex(md_path: str, tex_path: str, templates: dict, template_name: Optional[str] = None) -> str:
         # Build the base Pandoc command
@@ -167,9 +201,9 @@ def compile_markdown_to_pdf(
 
         subprocess.run(
             pandoc_cmd,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            # check=True,
+            # stdout=subprocess.DEVNULL,
+            # stderr=subprocess.DEVNULL
         )
         return tex_path
 
@@ -183,14 +217,14 @@ def compile_markdown_to_pdf(
         # First pass
         subprocess.run(
             pdflatex_command,
-            check=True,
+            check=False,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
         # Second pass
         subprocess.run(
             pdflatex_command,
-            check=True,
+            check=False,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -211,13 +245,15 @@ def compile_markdown_to_pdf(
 
     templates = {
 
-    "one-column-article": r"""
+        "one-column-article": r"""
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[lmargin=1in,rmargin=1in]{geometry}
 \usepackage[unicode=true]{hyperref}
 \usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
 }
@@ -231,11 +267,13 @@ $body$
 \end{document}
     """,
 
-    "two-column-article": r"""
+        "two-column-article": r"""
 \documentclass[twocolumn]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
 \usepackage[unicode=true]{hyperref}
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
@@ -255,6 +293,8 @@ $body$
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
 \usepackage[margin=1in]{geometry}
 \usepackage[unicode=true]{hyperref}
 \providecommand{\tightlist}{
@@ -276,6 +316,8 @@ $body$
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
 \usepackage[unicode=true]{hyperref}
 \title{$title$}
 \subtitle{$subtitle$}
@@ -298,6 +340,8 @@ $body$
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
 \usepackage[margin=1in]{geometry}
 \signature{$author$}
 \address{$address$}
@@ -324,16 +368,12 @@ $body$
     # — ADDED: Expand embedded Python in the original Markdown first
     expanded_md_path = expand_python_in_markdown(source_file)
 
-
     # Step 1: Convert Markdown to a temporary .tex file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".tex") as temp_tex_file:
         temp_tex_path: str = temp_tex_file.name
 
     temp_dir = None
     final_pdf_path = None
-
-
-
 
     try:
         progress_bar = tqdm(
@@ -393,12 +433,13 @@ $body$
         if temp_dir and os.path.isdir(temp_dir):
             shutil.rmtree(temp_dir)
 
+
 def install_pandoc_and_latex():
     """
     Install pandoc and a set of essential TeX Live packages on an Ubuntu-like system
     (requires sudo privileges). This approach is more minimal than installing texlive-full,
     yet covers most common needs.
-    
+
     # List of essential packages commonly used for LaTeX documents:
     #   texlive-latex-base           -> Basic LaTeX
     #   texlive-latex-recommended    -> Common document classes, packages (graphics, etc.)
@@ -421,6 +462,7 @@ def install_pandoc_and_latex():
         print("Installation of pandoc and a minimal TeX Live environment completed.")
     except subprocess.CalledProcessError as e:
         print(f"Installation failed: {e}")
+
 
 def main():
     print(logo_string)

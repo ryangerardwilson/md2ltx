@@ -31,7 +31,9 @@ This is a **Markdown** document to test `compile_markdown_to_pdf` from `main.py`
 
 ## Conclusion
 
-Markdown is fantastic! <EVALUATION::1>. Markdown is fantastic2! <EVALUATION::compute_2>
+Markdown is fantastic! <EVALUATION::1>. Markdown is fantastic2! <EVALUATION::compute_2>.
+
+And this is incomingcalls: <EVALUATION::3>
 
 [EVALUATE::1]###################################################################
 def evaluate() -> str:
@@ -45,6 +47,12 @@ def evaluate() -> str:
     return f"The square root of 25 is {val}"
 [EVALUATE::compute_2]###########################################################
 
+[EVALUATE::3]###################################################################
+def evaluate() -> str:
+    df = rgwfuncs.load_data_from_query("happy","SELECT * FROM incomingcalls LIMIT 20")
+    df_first_three_cols = df.iloc[:, :3]
+    return df_first_three_cols
+[EVALUATE::3]###################################################################
 
     """
 
@@ -60,7 +68,7 @@ def evaluate() -> str:
         # Example usage:
         # compile_markdown_to_pdf(source_file, output_pdf, open_file, save_file)
         # 1) Save to output_pdf_path and also open it:
-        compile_markdown_to_pdf(temp_md_path, output_pdf_path, template_name="one-column-article", open_file=True)
+        compile_markdown_to_pdf(temp_md_path, output_pdf_path, template_name="two-column-article", open_file=True)
 
         # 2) If you wanted to just open without saving, you could do:
         # compile_markdown_to_pdf(temp_md_path, open_file=True, save_file=False)
