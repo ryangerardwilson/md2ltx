@@ -10,9 +10,36 @@ from typing import Optional
 
 from md2ltx.lib.string_lib import logo_string, help_string
 
+templates = {
+    "two-column": r"""
+\documentclass[twocolumn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage[unicode=true]{hyperref}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+
+$body$
+
+\end{document}
+""",
+}
+
+
 def compile_markdown_to_pdf(
     source_file: str,
     output_pdf: Optional[str] = None,
+    template_name: Optional[str] = None,
     open_file: bool = False
 ) -> None:
     """
@@ -33,9 +60,27 @@ def compile_markdown_to_pdf(
     :return: None. Side effects are writing files and optionally opening the PDF.
     """
 
-    def convert_markdown_to_latex(md_path: str, tex_path: str) -> str:
+    def convert_markdown_to_latex(md_path: str, tex_path: str, templates: dict, template_name: Optional[str] = None) -> str:
+        # Build the base Pandoc command
+        pandoc_cmd = [
+            'pandoc', md_path,
+            '-s',
+            '-o', tex_path,
+            '--pdf-engine-opt=--quiet'
+        ]
+
+        # print(templates)
+        # <-- Added: If a template_name is given and it exists in templates, write to temp file and use it.
+        if template_name and template_name in templates:
+            # print(f"printing template {template_name}")
+            # print(templates[template_name])
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".tex") as tf:
+                tf.write(templates[template_name].encode('utf-8'))
+                tf.flush()
+                pandoc_cmd.append(f'--template={tf.name}')
+
         subprocess.run(
-            ['pandoc', md_path, '-s', '-o', tex_path, '--pdf-engine-opt=--quiet'],
+            pandoc_cmd,
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
@@ -50,9 +95,19 @@ def compile_markdown_to_pdf(
             tex_file
         ]
         # First pass
-        subprocess.run(pdflatex_command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            pdflatex_command,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
         # Second pass
-        subprocess.run(pdflatex_command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            pdflatex_command,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
         base_name = os.path.splitext(os.path.basename(tex_file))[0]
         return os.path.join(output_dir, f"{base_name}.pdf")
@@ -82,7 +137,6 @@ def compile_markdown_to_pdf(
 
     temp_dir = None
     final_pdf_path = None
-    remove_after_open = False  # Will become True if no output_pdf is provided
 
     try:
         progress_bar = tqdm(
@@ -93,7 +147,7 @@ def compile_markdown_to_pdf(
             bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]'
         )
 
-        convert_markdown_to_latex(source_file, temp_tex_path)
+        convert_markdown_to_latex(source_file, temp_tex_path, templates, template_name)
         time.sleep(delay_per_step)
         progress_bar.update(1)
 
@@ -142,21 +196,17 @@ def compile_markdown_to_pdf(
         if temp_dir and os.path.isdir(temp_dir):
             shutil.rmtree(temp_dir)
 
-        # If we used a local PDF with no user-specified output, remove it afterward
-        # if remove_after_open and final_pdf_path and os.path.exists(final_pdf_path):
-        #    os.remove(final_pdf_path)
-
 
 def install_pandoc_and_latex():
     """
-    Install pandoc and a minimal TeX Live package on an Ubuntu-like system
+    Install pandoc and the full TeX Live package on an Ubuntu-like system
     (requires sudo privileges). Adjust or extend for other operating systems.
     """
-    print("Attempting to install pandoc and a minimal TeX Live distribution...")
+    print("Attempting to install pandoc and the full TeX Live distribution...")
     try:
         subprocess.run(["sudo", "apt-get", "update"], check=True)
-        subprocess.run(["sudo", "apt-get", "-y", "install", "pandoc", "texlive-latex-base"], check=True)
-        print("Installation of pandoc and TeX Live completed.")
+        subprocess.run(["sudo", "apt-get", "-y", "install", "pandoc", "texlive-full"], check=True)
+        print("Installation of pandoc and full TeX Live completed.")
     except subprocess.CalledProcessError as e:
         print(f"Installation failed: {e}")
 
@@ -197,6 +247,13 @@ def main():
         help="Open the resulting PDF with the system's default viewer."
     )
 
+    # <-- Added: new argument for template name
+    parser.add_argument(
+        "--template",
+        default=None,
+        help="Name of a built-in template to use (e.g. 'two-column')."
+    )
+
     args = parser.parse_args()
 
     # If --help was passed, show custom help and exit
@@ -220,14 +277,14 @@ def main():
         print(f"Error: No such file: {args.source_file}")
         sys.exit(1)
 
-    # Compile
+    # <-- Modified: pass template name along
     compile_markdown_to_pdf(
         source_file=args.source_file,
         output_pdf=args.output_pdf,
+        template_name=args.template,
         open_file=args.open
     )
 
 
 if __name__ == "__main__":
     main()
-

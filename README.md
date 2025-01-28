@@ -2,7 +2,7 @@
 
 A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Requires a pip virtual environment in Ubuntu/ Debian based OS.
 
-## Installation
+## 1. Installation
 
     pip install md2ltx; md2ltx --install_dependencies
 
@@ -23,16 +23,75 @@ A command-line tool for converting Markdown to PDF via Pandoc and LaTeX. Require
 • <strong>--open</strong>  
   Open the resulting PDF in the system’s default viewer.  
 
+• <strong>--template &lt;template_name&gt;</strong>  
+  Specify a built-in templates by name. Available templates: “two-column”).
+
 • <strong>--help</strong>  
   Show this help message and exit.  
 
-## Description
+## 2. Templates
+
+md2ltx supports injecting Markdown content into a LaTeX “template” that defines the overall look and structure of the PDF. 
+
+You can choose one of the built-in templates: "two-column". Using the “--template” flag tells Pandoc to load and apply that LaTeX template. Inside the template, Pandoc replaces special variables like `$title$`, `$author$`, `$date$`, and `$body$` with metadata and the converted Markdown content.
+
+### Specifying Title, Author, and Date
+
+Pandoc reads title, author, and date from the YAML metadata block at the top of your Markdown file. For example:
+
+    ---
+    title: "My Awesome Title"
+    author: "John Doe"
+    date: "October 4, 2023"
+    ---
+
+    # Sample Document
+
+    This is a **Markdown** document to test `compile_markdown_to_pdf` from `main.py`.
+
+    ## Advantages of Markdown
+
+    - Easy to write
+    - Human-readable
+    - Widely supported
+
+    ## Conclusion
+
+    Markdown is fantastic!
+
+
+Pandoc will inject your Markdown content where  `$body$` is defined, and the YAML metadata (title, author, date) will appear in your final PDF, as below.
+
+    \documentclass[twocolumn]{article}
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    \usepackage{lmodern}
+
+    \usepackage[unicode=true]{hyperref}
+    \providecommand{\tightlist}{
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+    }
+
+    \title{$title$}
+    \author{$author$}
+    \date{$date$}
+
+    \begin{document}
+    \maketitle
+
+    $body$
+
+    \end{document}
+
+---
+
+## 3. General Pandoc Tranformations
 
 md2ltx uses Pandoc to transform Markdown files into LaTeX, which pdflatex then uses to generate a final PDF. This workflow supports most of Markdown’s core syntax plus many Pandoc extensions. Below is a high-level overview of how Pandoc typically converts various Markdown constructs into LaTeX. For full details, refer to Pandoc’s official documentation.
 
 ---
 
-### 1) Headings
+### 3.1. Headings
 
 • <strong>Markdown</strong>  
   <pre><code># Heading 1  
@@ -48,7 +107,7 @@ Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on th
 
 ---
 
-### 2) Emphasis &amp; Strong Emphasis
+### 3.2. Emphasis &amp; Strong Emphasis
 
 • <strong>Markdown</strong>  
   <pre><code>*emphasis* or _emphasis_  
@@ -60,7 +119,7 @@ Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on th
 
 ---
 
-### 3) Inline Code
+### 3.3. Inline Code
 
 • <strong>Markdown</strong>  
   <pre><code>`inline code`</code></pre>
@@ -70,7 +129,7 @@ Pandoc chooses <code>\section</code>, <code>\subsection</code>, etc. based on th
 
 ---
 
-### 4) Code Blocks
+### 3.4. Code Blocks
 
 • <strong>Markdown (fenced)</strong>  
   <pre><code>```  
@@ -88,7 +147,7 @@ With certain options, Pandoc can use different LaTeX environments (e.g., listing
 
 ---
 
-### 5) Lists
+### 3.5. Lists
 
 • <strong>Unordered (Markdown)</strong>  
   <pre><code>- item 1  
@@ -114,7 +173,7 @@ With certain options, Pandoc can use different LaTeX environments (e.g., listing
 
 ---
 
-### 6) Links &amp; Images
+### 3.6. Links &amp; Images
 
 • <strong>Link (Markdown)</strong>  
   <pre><code>[Pandoc](https://pandoc.org)</code></pre>
@@ -132,7 +191,7 @@ By default, <code>\includegraphics</code> is placed without floats. You can add 
 
 ---
 
-### 7) Blockquotes
+### 3.7. Blockquotes
 
 • <strong>Markdown</strong>  
   <pre><code>> This is a blockquote.</code></pre>
@@ -144,7 +203,7 @@ This is a blockquote.
 
 ---
 
-### 8) Horizontal Rules
+### 3.8. Horizontal Rules
 
 • <strong>Markdown</strong>  
   <pre><code>---  
@@ -156,7 +215,7 @@ ___</code></pre>
 
 ---
 
-### 9) Footnotes (Pandoc Extension)
+### 3.9. Footnotes (Pandoc Extension)
 
 • <strong>Markdown</strong>  
   <pre><code>This is some text with a footnote.[^1]
@@ -168,7 +227,7 @@ ___</code></pre>
 
 ---
 
-### 10) Tables
+### 3.10. Tables
 
 • <strong>Markdown (simple pipe table)</strong>  
   <pre><code>| Column1 | Column2 |  
@@ -191,7 +250,7 @@ Val3    & Val4    \\
 
 ---
 
-### 11) Math &amp; LaTeX Blocks
+### 3.11. Math &amp; LaTeX Blocks
 
 • <strong>Inline Math</strong>  
   <pre><code>$E = mc^2$</code></pre>
@@ -211,19 +270,13 @@ E = mc^2
 
 ---
 
-### 12) Citations &amp; Bibliographies
+### 3.12. Citations &amp; Bibliographies
 
 Pandoc can handle citations if you provide a bibliography file. A reference like <code>[@smith2009]</code> can become <code>\cite{smith2009}</code> or <code>\autocite</code> depending on the style and Pandoc’s command-line options.
 
 ---
 
-### 13) Metadata &amp; Title Blocks
-
-Markdown with a YAML metadata block (e.g., “title: My Title”) can become <code>\title</code>, <code>\author</code>, etc., in LaTeX. Use <code>-s</code> or <code>--standalone</code> to generate a title page and call <code>\maketitle</code>.
-
----
-
-### 14) Raw LaTeX
+### 3.14. Raw LaTeX
 
 Pandoc passes raw LaTeX through if you’re converting to LaTeX or PDF. For example:
 

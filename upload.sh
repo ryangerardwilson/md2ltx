@@ -3,7 +3,7 @@
 # Step 0: Update help_string in help_lib.py with the latest content from README.md
 update_help_string() {
     # Adjust these if your file paths differ
-    local help_lib_file="src/md2ltx/lib/help_lib.py"
+    local help_lib_file="src/md2ltx/lib/string_lib.py"
     local readme_file="README.md"
 
     # Use awk to replace everything between:
@@ -41,10 +41,10 @@ update_help_string() {
     }
     ' "$help_lib_file" > "${help_lib_file}.tmp" && mv "${help_lib_file}.tmp" "$help_lib_file"
 
-    echo "help_lib.py updated with latest README.md content."
+    echo "string_lib.py updated with latest README.md content."
 }
 
-echo "Updating help_string in help_lib.py from README.md..."
+echo "Updating help_string in string_lib.py from README.md..."
 update_help_string  # Step 0
 
 # Step 1: Increment the version number in pyproject.toml and setup.cfg

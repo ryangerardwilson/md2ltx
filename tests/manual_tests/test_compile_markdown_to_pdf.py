@@ -10,8 +10,15 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.md2ltx.main import compile_markdown_to_pdf
 
+
 def test_compile_markdown_to_pdf():
     markdown_content = r"""
+---
+title: "My Awesome Title"
+author: "John Doe"
+date: "October 4, 2023"
+---
+
 # Sample Document
 
 This is a **Markdown** document to test `compile_markdown_to_pdf` from `main.py`.
@@ -39,7 +46,7 @@ Markdown is fantastic!
         # Example usage:
         # compile_markdown_to_pdf(source_file, output_pdf, open_file, save_file)
         # 1) Save to output_pdf_path and also open it:
-        compile_markdown_to_pdf(temp_md_path, output_pdf_path, open_file=True)
+        compile_markdown_to_pdf(temp_md_path, output_pdf_path, template_name="two-column", open_file=True)
 
         # 2) If you wanted to just open without saving, you could do:
         # compile_markdown_to_pdf(temp_md_path, open_file=True, save_file=False)
@@ -57,6 +64,6 @@ Markdown is fantastic!
 
     print("Test completed!")
 
+
 if __name__ == "__main__":
     test_compile_markdown_to_pdf()
-
