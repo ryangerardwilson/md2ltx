@@ -90,53 +90,67 @@ Pandoc loads the chosen “two-column-article” template, substitutes $title$, 
 
 ---------------------------------------------------------------------------------
 
-## 3. Embedded Python Code with `<e{ … }e>`
+## 3. Embedded Python Code with `<EVALUATION::FLAG>`
 
-md2ltx also supports executing small Python code blocks inline with your Markdown, then replacing those blocks with the code’s return value. This is done via special tags in your Markdown:
+md2ltx supports executing Python code blocks inline with your Markdown, replacing placeholders (`<EVALUATION::FLAG>`) with the code’s return value. Each code block is identified by a “FLAG” (like “1” or `compute_2`), and each placeholder references that same FLAG. This allows multiple separate code evaluations in a single document.
 
-    <e{
-    # Python code here
-    }e>
+Syntax Overview:  
+- A placeholder in your Markdown:  
+   `<EVALUATION::FLAG>`  
+- A corresponding Python code block, delimited by lines that start with [EVALUATE::FLAG] and at least three “#” characters, e.g.:  
+   [EVALUATE::FLAG]####  
+   (your Python code defining evaluate())  
+   [EVALUATE::FLAG]####  
 
-### 3.1. Requirements
+During processing, md2ltx:  
+• Finds all `<EVALUATION::some_flag>` placeholders.  
+• Locates the matching code block `[EVALUATE::some_flag]####` … `[EVALUATE::some_flag]####` in your Markdown.  
+• Executes the code (which must define a function named evaluate() -> str).  
+• Replaces `<EVALUATION::some_flag>` with the string returned by evaluate().  
 
-• You must define exactly one function named `evaluate()`, which returns a string.  
-• No need to call `evaluate()` yourself; md2ltx will call it automatically.  
-• Any leading or trailing whitespace in the returned string is trimmed.  
-• Access to certain libraries are available in the `<e{ ... }e>` Python environment (math, pandas as pd, numpy as np, rgwfuncs) and do not need to be imported.
+### 3.1. Requirements  
 
-### 3.2. Example Usage
+• Exactly one function named `evaluate()` in each code block, returning a string.  
+• md2ltx automatically calls `evaluate()` you do not call it yourself.  
+• Leading/trailing whitespace in the returned string is trimmed.  
+• Your code can freely use `math`, `pandas` (as `pd`), `numpy` (as `np`), and `rgwfuncs` without needing to import them.
 
-Suppose you want to compute the square root of 16 using the math library:
+### 3.2. Example
 
-    <e{
-    def my_result() -> str:
+Suppose you want to compute the square root of 16 in your Markdown, labeling that code block with the FLAG “1”:
+
+    Here’s the result: <EVALUATION::1>
+
+    [EVALUATE::1]###################################################################
+    def evaluate() -> str:
         val = math.sqrt(16)
         return f"The square root of 16 is {val}"
-    }e>
+    [EVALUATE::1]###################################################################
 
-When md2ltx processes this Markdown, it will:  
+When md2ltx processes this:
 
-1. Extract the Python code between `<e{ and }e>`.  
-2. Execute it in an environment where math, pd, np, and rgwfuncs are already available.  
-3. Call `evaluate()` for you.  
-4. Replace the entire `<e{ … }e>` block in the final PDF with the string returned by my_result().  
+• Finds `<EVALUATION::1>`  
+• Extracts and executes the code within the block marked `[EVALUATE::1] … [EVALUATE::1]`  
+• Replaces the placeholder with whatever evaluate() returns, e.g. “The square root of 16 is 4.0.”
 
-So, in the final PDF, you’ll see:
+### 3.3. Another Example with Pandas, NumPy
 
-    The square root of 16 is 4.0
+Say you also define a second code block with FLAG `compute_2`:
 
-### 3.3. Another Example (Pandas, Numpy)
+The mean is: `<EVALUATION::compute_2>`
 
-    <e{
-    def my_result() -> str:
+    [EVALUATE::compute_2]###########################################################
+    def evaluate() -> str:
         data = np.array([1,2,3,4])
         s = pd.Series(data)
-        mean_val = s.mean()
-        return f"The mean of [1,2,3,4] is {mean_val}"
-    }e>
+        return f"{s.mean()}"
+    [EVALUATE::compute_2]###########################################################
 
-Here, we use numpy arrays `np.array()`, and a pandas Series `pd.Series`. md2ltx automatically provides np and pd in the environment without requiring separate imports.
+Here we use a NumPy array and a pandas Series within `evaluate()`. The placeholder `<EVALUATION::compute_2>` will be replaced by the string returned, for instance “2.5.”
+
+### 3.4. Multiple Evaluations in One Document
+
+You can place as many `<EVALUATION::FLAG>` placeholders and corresponding code blocks as you need. Each FLAG is matched with its own code block, allowing you to perform separate computations throughout the document.
 
 --------------------------------------------------------------------------------
 

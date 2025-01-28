@@ -43,66 +43,107 @@ def compile_markdown_to_pdf(
     :return: None. Side effects are writing files and optionally opening the PDF.
     """
 
-
     def expand_python_in_markdown(md_path: str) -> str:
         """
-        Reads the Markdown file, looks for <e{ ... }e> blocks,
-        runs the Python code inside them, replaces that block with the result,
-        and writes and returns the path to a temporary file with replacements.
+        Reads the Markdown file, looks for all code blocks of the form:
+
+            [EVALUATE::FLAG]########(3 or more '#'s)
+            def evaluate() -> str:
+                ...
+            [EVALUATE::FLAG]########(3 or more '#'s)
+
+        Each block must define exactly one function named `evaluate()`.
+        The content in between these lines is Python code.
+        We also look for placeholders in the text of the form:
+
+            <EVALUATION::FLAG>
+
+        If we find multiple unique FLAGs, we allow multiple separate blocks of code
+        and multiple placeholders. Each code block is evaluated once and replaces
+        <EVALUATION::that_FLAG> with the function’s return value.
+
+        Steps:
+        1) Find and remove all [EVALUATE::...] code blocks, storing them in a dict keyed by FLAG.
+        2) Evaluate each code block by calling its evaluate() function, storing results in a dict.
+        3) Replace every <EVALUATION::FLAG> with the corresponding code evaluation result.
+           If a placeholder has no corresponding code block, it will get an error string instead.
         """
 
+        # Read the Markdown file
+        with open(md_path, 'r', encoding='utf-8') as f:
+            content = f.read()
 
+        # 1) Find all code blocks of the form:
+        #    [EVALUATE::SOME_FLAG]#{3,} (any code) [EVALUATE::SOME_FLAG]#{3,}
+        # We'll capture:
+        #   group(1): The FLAG (e.g. "1", "compute_2")
+        #   group(2): The actual code between the pairs of lines
+        block_pattern = re.compile(
+            r"\[EVALUATE::([^\]]+)\]#{3,}\s*(.*?)\s*\[EVALUATE::\1\]#{3,}",
+            re.DOTALL
+        )
+        found_blocks = block_pattern.findall(content)
+
+        # Dictionary to store code by flag
+        code_by_flag = {}
+        for flag, code_content in found_blocks:
+            code_by_flag[flag] = code_content
+
+        # Remove these blocks from the content so they don't appear in the final Markdown
+        content_no_blocks = block_pattern.sub("", content)
+
+        # 2) Evaluate each code block by calling the evaluate() function
         def run_python_code(code_str: str) -> str:
             """
-            Expects code_str to define exactly one function named `evaluate`,
-            which returns a string. After setting up default libraries in `env`,
-            we exec the user's code, then call evaluate() from that environment.
+            Expects code_str to define exactly one function named `evaluate()`,
+            which returns a string. We provide a minimal environment and exec the user’s code,
+            then call evaluate() from that environment.
             """
-            # Provide these libraries in the environment
             env = {
                 "math": math,
                 "pd": pd,
                 "np": np,
                 "rgwfuncs": rgwfuncs
             }
-
             try:
-                # The user’s code defines 'my_result'
                 exec(code_str, env, env)
             except Exception as e:
                 return f"[Error running Python code: {e}]"
 
-            # Ensure my_result is defined
             if "evaluate" not in env:
                 return "[Error: No function named 'evaluate' was defined]"
 
             try:
-                # Now call the user's function
                 result_val = env["evaluate"]()
                 return str(result_val).strip()
             except Exception as e:
                 return f"[Error calling evaluate(): {e}]"
 
+        code_results = {}
+        for flag, code_content in code_by_flag.items():
+            code_results[flag] = run_python_code(code_content)
 
-        with open(md_path, 'r', encoding='utf-8') as f:
-            content = f.read()
+        # 3) Replace <EVALUATION::FLAG> placeholders with the code results
+        # Pattern capturing e.g. <EVALUATION::1>, <EVALUATION::compute_2>, etc.
+        placeholder_pattern = re.compile(r"<EVALUATION::([^\>]+)>")
 
-        # This pattern captures everything between <e{ and }e> as group(1).
-        pattern = r"<e\{\s*(.*?)\s*\}e>"
-        
-        def replacer(match: re.Match) -> str:
-            code_block = match.group(1)
-            return run_python_code(code_block)
+        def placeholder_replacer(match: re.Match) -> str:
+            found_flag = match.group(1)
+            if found_flag in code_results:
+                return code_results[found_flag]
+            else:
+                return f"[No code block found for FLAG: {found_flag}]"
 
-        # Use DOTALL so that '.' matches newlines, allowing multi-line code blocks
-        new_content = re.sub(pattern, replacer, content, flags=re.DOTALL)
+        final_content = placeholder_pattern.sub(placeholder_replacer, content_no_blocks)
 
-        # Write out to a temporary Markdown file
+        # Write out the modified content to a temporary markdown file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode='w', encoding='utf-8') as temp_md_file:
-            temp_md_file.write(new_content)
+            temp_md_file.write(final_content)
             temp_md_path = temp_md_file.name
-        
+
         return temp_md_path
+
+
 
 
     def convert_markdown_to_latex(md_path: str, tex_path: str, templates: dict, template_name: Optional[str] = None) -> str:

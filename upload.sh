@@ -2,50 +2,39 @@
 
 # Step 0: Update help_string in help_lib.py with the latest content from README.md
 update_help_string() {
-    # Adjust these if your file paths differ
-    local help_lib_file="src/md2ltx/lib/string_lib.py"
-    local readme_file="README.md"
+  local help_lib_file="src/md2ltx/lib/string_lib.py"
+  local readme_file="README.md"
 
-    # Use awk to replace everything between:
-    #   help_string = r"""
-    # and
-    #   """
-    # with the contents of your README.md
-    awk -v rfile="$readme_file" '
-    BEGIN {
-        # Read the entire README.md into memory
-        while ((getline line < rfile) > 0) {
-            readme = readme line "\n"
-        }
-        close(rfile)
+  # Entire AWK script in single quotes
+  awk -v rfile="$readme_file" '
+BEGIN {
+    while ((getline line < rfile) > 0) {
+        readme = readme line "\n"
     }
-    {
-        # If we see the start of the help_string block,
-        # print it and then print the README content.
-        if ($0 ~ /^help_string = r"""/) {
-            print "help_string = r\"\"\""
-            print readme
-            print "\"\"\""
-            skip=1
-            next
-        }
-        # Skip lines inside the old triple-quoted block
-        if (skip == 1) {
-            if ($0 ~ /^\"\"\"/) {
-                skip=0
-            }
-            next
-        }
-        # Print lines outside the replaced block
-        print
+    close(rfile)
+}
+{
+    if ($0 == "help_string = r\"\"\"") {
+        print "help_string = r\"\"\""
+        print readme
+        print "\"\"\""
+        skip=1
+        next
     }
-    ' "$help_lib_file" > "${help_lib_file}.tmp" && mv "${help_lib_file}.tmp" "$help_lib_file"
+    if (skip == 1) {
+        if ($0 == "\"\"\"") {
+            skip=0
+        }
+        next
+    }
+    print
+}
+' "$help_lib_file" > "${help_lib_file}.tmp" && mv "${help_lib_file}.tmp" "$help_lib_file"
 
-    echo "string_lib.py updated with latest README.md content."
+  echo "string_lib.py updated with latest README.md content."
 }
 
-echo "Updating help_string in string_lib.py from README.md..."
-update_help_string  # Step 0
+
 
 # Step 1: Increment the version number in pyproject.toml and setup.cfg
 increment_version() {
