@@ -361,7 +361,7 @@ def main():
     # If --install was passed, attempt software install, then exit
     if args.install_dependencies:
         install_pandoc_and_latex()
-        print("\nDependencies installed. Re-run md2ltx without --install to compile documents.")
+        print("\nDependencies installed. Re-run md2ltx without --install_dependencies to compile documents.")
         sys.exit(0)
 
     # Minimal sanity check
