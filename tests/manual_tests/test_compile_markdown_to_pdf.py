@@ -57,7 +57,7 @@ And this is incomingcalls: `EMBED::eval_3`
 [END]###########################################################################
     """
 
-    try: 
+    try:
         evaluated_content = evaluate_python_in_markdown_string(markdown_content)
 
         # Create a temporary Markdown file
@@ -68,9 +68,14 @@ And this is incomingcalls: `EMBED::eval_3`
         # Define a temporary output PDF path
         output_pdf_path = tempfile.mktemp(suffix=".pdf")
 
+        # get the base name of the file (e.g., file.md)
+        base_name = os.path.basename(temp_md_path)
+        # split the base name to remove the extension (e.g., ['file', 'md'])
+        source_file_name_without_extension = os.path.splitext(base_name)[0]
 
         compile_markdown_to_pdf(
-            source_file=temp_md_path,
+            source_file_name_without_extension=source_file_name_without_extension,
+            preprocessed_source_file=temp_md_path,
             output_pdf=output_pdf_path,
             template_content=templates.get("two-column-article"),
             open_file=True,
@@ -79,7 +84,6 @@ And this is incomingcalls: `EMBED::eval_3`
         print(e)
 
     finally:
-        # Clean up the temporary Markdown file
         if os.path.exists(temp_md_path):
             os.remove(temp_md_path)
 

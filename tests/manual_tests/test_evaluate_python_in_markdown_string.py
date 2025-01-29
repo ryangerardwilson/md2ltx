@@ -52,7 +52,7 @@ And this is incomingcalls: `EMBED::eval_3`
 [END]###########################################################################
     """
 
-    try: 
+    try:
         evaluated_content = evaluate_python_in_markdown_string(markdown_content)
         print("EVALUATED CONTENT")
         print("#################################################################")

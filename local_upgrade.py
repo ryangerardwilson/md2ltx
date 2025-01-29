@@ -3,6 +3,7 @@ import subprocess
 import re
 from pathlib import Path
 
+
 def update_help_string():
     help_lib_file = Path("constants.py")
     readme_file = Path("README.md")
@@ -39,10 +40,12 @@ def update_help_string():
 
     print("constants.py updated with latest README.md content.")
 
+
 def rebuild_package():
     subprocess.run(["python3", "-m", "pip", "install", "--upgrade", "build"], check=True)
     shutil.rmtree("dist", ignore_errors=True)
     subprocess.run(["python3", "-m", "build"], check=True)
+
 
 def uninstall_local_library():
     package_name = None
@@ -55,8 +58,10 @@ def uninstall_local_library():
     if package_name:
         subprocess.run(["pip3", "uninstall", "-y", package_name], check=True)
 
+
 def install_local_version():
     subprocess.run(["pip3", "install", "."], check=True)
+
 
 def main():
     print("Updating help_string in string_lib.py from README.md...")
@@ -73,6 +78,6 @@ def main():
 
     print("The local version of the package has been reinstalled.")
 
+
 if __name__ == "__main__":
     main()
-

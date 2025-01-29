@@ -6,12 +6,10 @@ import time
 import argparse
 import shutil
 from typing import Optional
-import pandas as pd
-import numpy as np
-import rgwfuncs
 
 from .lib.constants import logo_string, help_string, templates
 from .lib.python_evaluation import evaluate_python_in_markdown_string
+
 
 def preprocess_markdown_file(source_file: str, test: bool = False) -> str:
     """Preprocess a Markdown file by evaluating embedded Python and saving it as a temporary file."""
@@ -36,8 +34,10 @@ def preprocess_markdown_file(source_file: str, test: bool = False) -> str:
 
     return temp_md_path
 
+
 def compile_markdown_to_pdf(
-    source_file: str,
+    source_file_name_without_extension: str,
+    preprocessed_source_file: str,
     template_content: Optional[str] = None,
     output_pdf: Optional[str] = None,
     open_file: bool = False
@@ -90,7 +90,7 @@ def compile_markdown_to_pdf(
         except Exception as e:
             print(f"Unable to open PDF automatically: {str(e)}")
 
-    if not source_file.endswith('.md'):
+    if not preprocessed_source_file.endswith('.md'):
         print("Error: The source file must be a Markdown (.md) file.")
         sys.exit(1)
 
@@ -101,7 +101,7 @@ def compile_markdown_to_pdf(
     final_pdf_path = None
 
     try:
-        convert_markdown_to_latex(source_file, temp_tex_path, template_content)
+        convert_markdown_to_latex(preprocessed_source_file, temp_tex_path, template_content)
         time.sleep(1)
 
         temp_dir = tempfile.mkdtemp()
@@ -113,7 +113,7 @@ def compile_markdown_to_pdf(
             sys.exit(1)
 
         if output_pdf is None:
-            pdf_basename = os.path.splitext(os.path.basename(source_file))[0] + ".pdf"
+            pdf_basename = os.path.splitext(os.path.basename(source_file_name_without_extension))[0] + ".pdf"
             final_pdf_path = os.path.join(os.getcwd(), pdf_basename)
         else:
             final_pdf_path = output_pdf
@@ -138,6 +138,7 @@ def compile_markdown_to_pdf(
         if temp_dir and os.path.isdir(temp_dir):
             shutil.rmtree(temp_dir)
 
+
 def install_pandoc_and_latex():
     """Install pandoc and a minimal set of TeX Live packages."""
     packages = [
@@ -155,6 +156,7 @@ def install_pandoc_and_latex():
         print("Installation of pandoc and a minimal TeX Live environment completed.")
     except subprocess.CalledProcessError as e:
         print(f"Installation failed: {e}")
+
 
 def main():
     print(logo_string)
@@ -202,7 +204,6 @@ def main():
         help="Evaluates the python code in the Markdown, and prints the string just before it is sent for Pandoc processing."
     )
 
-
     args = parser.parse_args()
 
     if args.help:
@@ -233,15 +234,21 @@ def main():
     # Preprocess the markdown file
     expanded_md_path = preprocess_markdown_file(args.source_file, args.test)
 
+    # get the base name of the file (e.g., file.md)
+    base_name = os.path.basename(args.source_file)
+    # split the base name to remove the extension (e.g., ['file', 'md'])
+    source_file_name_without_extension = os.path.splitext(base_name)[0]
+
     if not args.test:
         # Compile to PDF using the preprocessed file and resolved template content
         compile_markdown_to_pdf(
-            source_file=expanded_md_path,
+            source_file_name_without_extension=source_file_name_without_extension,
+            preprocessed_source_file=expanded_md_path,
             output_pdf=args.output_pdf,
             template_content=template_content,
             open_file=args.open
         )
 
+
 if __name__ == "__main__":
     main()
-

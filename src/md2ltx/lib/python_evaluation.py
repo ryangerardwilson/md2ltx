@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import rgwfuncs
 from datetime import datetime
-import textwrap
+
 
 def evaluate_python_in_markdown_string(markdown_content: str) -> str:
     """
@@ -73,7 +73,6 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
             # If it's blank or less than 4 spaces, just remove what’s there
             return line.lstrip()
 
-
     # Regex: capture all blocks between [START] and [END]
     block_pattern = re.compile(r"\[START\]#{3,}\s*(.*?)\s*\[END\]#{3,}", re.DOTALL)
     found_blocks = block_pattern.findall(markdown_content)
@@ -109,4 +108,3 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
     final_content = placeholder_pattern.sub(embed_replacer, content_no_blocks)
 
     return final_content
-
