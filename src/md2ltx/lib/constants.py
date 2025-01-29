@@ -1,3 +1,33 @@
+logo_string = r"""
+
+                                         _______              .-''-.     .---.
+                         __  __   ___    \  ___ `'.         .' .-.  )    |   |
+                        |  |/  `.'   `.   ' |--.\  \       / .'  / /     |   |
+                        |   .-.  .-.   '  | |    \  '     (_/   / /      |   |      .|
+                        |  |  |  |  |  |  | |     |  '         / /       |   |    .' |_     ____     _____
+                        |  |  |  |  |  |  | |     |  |        / /        |   |  .'     |   `.   \  .'    /
+                        |  |  |  |  |  |  | |     ' .'       . '         |   | '--.  .-'     `.  `'    .'
+                        |  |  |  |  |  |  | |___.' /'       / /    _.-') |   |    |  |         '.    .'
+                        |__|  |__|  |__| /_______.'/      .' '  _.'.-''  |   |    |  |         .'     `.
+                                         \_______|/      /  /.-'_.'      '---'    |  '.'     .'  .'`.   `.
+                                                        /    _.'                  |   /    .'   /    `.   `.
+                                                       ( _.-'                     `'-'    '----'       '----'
+
+                     (
+        (            )\ )                           (                                   (        (  (           (
+        )\          (()/(   (         )             )\ )       (    (        )   (      )\ )     )\))(   ' (    )\
+  __  (((_)  __      /(_))  )\ )   ( /(    (       (()/(      ))\   )(    ( /(   )(    (()/(    ((_)()\ )  )\  ((_)  (     (     (
+ / /  )\___  \ \    (_))   (()/(   )(_))   )\ )     /(_))_   /((_) (()\   )(_)) (()\    ((_))   _(())\_)()((_)  _    )\    )\    )\ )
+| |  ((/ __|  | |   | _ \   )(_)) ((_)_   _(_/(    (_)) __| (_))    ((_) ((_)_   ((_)   _| |    \ \((_)/ / (_) | |  ((_)  ((_)  _(_/(
+| |   | (__   | |   |   /  | || | / _` | | ' \))     | (_ | / -_)  | '_| / _` | | '_| / _` |     \ \/\/ /  | | | |  (_-< / _ \ | ' \))
+ \_\   \___| /_/    |_|_\   \_, | \__,_| |_||_|       \___| \___|  |_|   \__,_| |_|   \__,_|      \_/\_/   |_| |_|  /__/ \___/ |_||_|
+                            |__/
+######################################################################################################################################
+
+"""
+
+
+help_string = r"""
 # md2ltx
 
 A command-line tool for converting Markdown to LateX-formatted PDF via Pandoc. Requires a pip virtual environment in Ubuntu/ Debian based OS.
@@ -398,5 +428,121 @@ Pandoc passes raw LaTeX through if you’re converting to LaTeX or PDF. For exam
 remains <code>\newpage</code> in the output.
 
 ---
+
+
+"""
+
+templates = {
+    "one-column-article": r"""
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[lmargin=1in,rmargin=1in]{geometry}
+\usepackage[unicode=true]{hyperref}
+\usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+$body$
+\end{document}
+    """,
+
+    "two-column-article": r"""
+\documentclass[twocolumn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage[unicode=true]{hyperref}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+$body$
+\end{document}
+""",
+
+    "report": r"""
+\documentclass{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\usepackage[unicode=true]{hyperref}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+\title{$title$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\maketitle
+\tableofcontents
+$body$
+\end{document}
+    """,
+
+    "slides": r"""
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage[unicode=true]{hyperref}
+\title{$title$}
+\subtitle{$subtitle$}
+\author{$author$}
+\date{$date$}
+
+\begin{document}
+\begin{frame}
+\titlepage
+\end{frame}
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+$body$
+\end{document}
+    """,
+
+    "letter": r"""
+\documentclass{letter}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\signature{$author$}
+\address{$address$}
+\date{$date$}
+
+\begin{document}
+\begin{letter}{$recipient$}
+\opening{$greeting$}
+$body$
+\closing{$closing$}
+\end{letter}
+\end{document}
+    """
+}
 
 
