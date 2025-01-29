@@ -94,40 +94,40 @@ Pandoc loads the chosen “two-column-article” template, substitutes $title$, 
 
 ## 3. Embedded Python Code with `EMBED::function_name`
 
-md2ltx supports executing Python code blocks alongside your Markdown, and replacing placeholders of the form `EMBED::function_name`, with the string returned by calling `function_name()` in Python.
+md2ltx supports executing Python code blocks alongside your Markdown, and replacing placeholders of the form `EMBED::function_name` with the string returned by calling `function_name()` in Python.
 
-Each code block is enclosed between [START]######## and [END]######## (at least three “#” characters). All code in those blocks is executed once in the same environment, meaning you can define multiple functions in a single block or spread them across multiple blocks. As soon as the code is executed, any functions you defined become available for embedding.
+Each code block is enclosed between [START]######## and [END]######## (with at least three “#” characters). All code in those blocks is executed once in the same environment, meaning you can define multiple functions in a single block or spread them across multiple blocks. As soon as the code is executed, any functions you defined become available for embedding.
 
 ### 3.1. General Steps
 
-3.1.1. In your Markdown text, put placeholders where you want to inject dynamic data:  
+3.1.1. In your Markdown text, put placeholders where you want to inject dynamic data:
 
-    “Markdown is awesome! `EMBED::foo`.”  
+    “Markdown is awesome! `EMBED::foo`.”
 
-Each placeholder references a function name that you’ll define in a code block.  
+Each placeholder references a function name that you’ll define in a code block.
 
-3.1.2. Define your code blocks somewhere in the same Markdown file, delimited by [START]…[END]:  
-   
-    [START]#####################################################################  
-        def foo() -> str:  
-            return "Hello from foo()"  
+3.1.2. Define your code blocks somewhere in the same Markdown file, delimited by [START]…[END]:
 
-        def bar() -> str:  
-            return "Hello from bar()"  
-    [END]#####################################################################  
+    [START]#########################################################################
+        def foo() -> str:
+            return "Hello from foo()"
 
-You can define as many functions in a block as you want.  
+        def bar() -> str:
+            return "Hello from bar()"
+    [END]###########################################################################
 
-3.1.3. At build time, md2ltx collects all your code blocks, removes common indentation so Python sees them as valid top-level code, executes them, and records the function objects.  
+You can define as many functions in a block as you want.
 
-3.1.4. Every placeholder `EMBED::function_name` in your Markdown is then replaced by the return value of calling that function.  
+3.1.3. At build time, md2ltx collects all your code blocks, removes common indentation so Python sees them as valid top-level code, executes them, and records the function objects.
+
+3.1.4. Every placeholder `EMBED::function_name` in your Markdown is then replaced by the return value of calling that function.
 
 ### 3.2. Requirements  
 
 • Each function you plan to embed must take no parameters and return a string (or something convertible to string, or a pandas DataFrame).  
-• If your function returns a pandas.DataFrame, md2ltx auto-converts it to a Markdown table (truncated to the first 5 and last 5 rows if there are more than 10).  
-• md2ltx automatically provides math, pandas (as pd), numpy (as np), rgwfuncs, and datetime in the execution environment, so you don’t need to import them yourself.  
-• Keep your code blocks consistently indented. By default, if each line is indented by four spaces, md2ltx will remove those four leading spaces and preserve deeper indentation so that nested code within your function remains valid Python.  
+• If your function returns a pandas.DataFrame, md2ltx automatically converts it to a Markdown table (displaying only the first 5 and last 5 rows if there are more than 10).  
+• md2ltx does NOT automatically provide additional libraries (e.g. math, pandas, numpy, datetime, rgwfuncs) in the environment. If your code depends on these libraries, you must explicitly import them within your “[START] … [END]” blocks.  
+• Keep your code blocks consistently indented. By default, if each line is indented by four spaces, md2ltx will remove those four leading spaces and preserve deeper indentation so that nested code within your function remains valid Python.
 
 ### 3.3. Example  
 
@@ -136,57 +136,66 @@ Here’s a short Markdown snippet:
     Markdown is fantastic! `EMBED::sqrt_of_16`. Another result: `EMBED::compute_2`.
 
     [START]#########################################################################
+        import math
+
         def sqrt_of_16() -> str:
             val = math.sqrt(16)
             return f"The square root of 16 is {val}"
     [END]###########################################################################
 
     [START]#########################################################################
+        import math
+
         def compute_2() -> str:
             val = math.sqrt(25)
             return f"The square root of 25 is {val}"
     [END]###########################################################################
 
-When processed:  
+When processed:
 
-• The code blocks are aggregated and executed. Both `sqrt_of_16()` and `compute_2()` are defined.  
+• The code blocks are gathered and executed. Both `sqrt_of_16()` and `compute_2()` are defined.  
 • `EMBED::sqrt_of_16` is replaced by “The square root of 16 is 4.0.”  
 • `EMBED::compute_2` is replaced by “The square root of 25 is 5.0.”  
 
 Resulting output might look like:
 
-    Markdown is fantastic! The square root of 16 is 4.0. Another result: The square root of 25 is 5.0.  
+    Markdown is fantastic! The square root of 16 is 4.0. Another result: The square root of 25 is 5.0.
 
-### 3.4. Example with Dataframes  
+### 3.4. Example with DataFrames  
 
 You can also return a DataFrame—maybe you fetch data from `rgwfuncs.load_data_from_query()`:
 
     Here’s a DataFrame preview: `EMBED::fetch_data`
 
     [START]#########################################################################
+        import pandas as pd
+        from rgwfuncs import load_data_from_query
+
         def fetch_data() -> pd.DataFrame:
-            df = rgwfuncs.load_data_from_query("mydb", "SELECT * FROM mytable LIMIT 20")
+            df = load_data_from_query("mydb", "SELECT * FROM mytable LIMIT 20")
             return df
     [END]###########################################################################
 
-If `fetch_data()` returns a DataFrame (20 rows × N columns), md2ltx converts it to a Markdown pipe table. The final output appears as a table truncated if there are more than 10 rows.
+If `fetch_data()` returns a DataFrame (e.g. 20 rows × N columns), md2ltx converts it to a Markdown pipe table. The final output appears as a table, truncated if there are more than 10 rows.
 
 ### 3.5. Multiple Blocks, Many Functions  
 
-It’s perfectly valid to define multiple functions in one code block, or spread them among several. For instance:
+It’s perfectly valid to define multiple functions in one code block, or spread them among several:
 
-    [START]###################
+    [START]#########################################################################
+        import math
+
         def foo() -> str:
             return "Hello from foo"
 
         def bar() -> str:
             return "Hello from bar"
-    [END]###################
+    [END]###########################################################################
 
-    [START]###################
+    [START]#########################################################################
         def baz() -> str:
             return "Hello from baz"
-    [END]###################
+    [END]###########################################################################
 
 All three functions (foo, bar, baz) become available, and you embed them by writing:
 

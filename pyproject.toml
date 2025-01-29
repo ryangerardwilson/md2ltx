@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "md2ltx"
-version = "0.0.33"
+version = "0.0.35"
 description = "Convert Markdown (.md) files to PDF ..."
 readme = "README.md"
 requires-python = ">=3.10"

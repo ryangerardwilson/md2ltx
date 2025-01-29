@@ -46,7 +46,9 @@ A command-line tool for converting Markdown to LateX-formatted PDF via Pandoc. R
 
 • `output_pdf` (optional): Path to the output PDF file. If omitted, a default name is derived from the source file, and the working directory is assumed to be the path.  
 
-• `--open`: Open the resulting PDF in the system’s default viewer.  
+• `--open`: Open the resulting PDF in the system’s default viewer. 
+
+• `--test`: Evaluates embedded python and prints the pre-pandoc processed string for the purposes of debugging. 
 
 • `--template template_name`: Specify a built-in templates by name. Available templates: "one-column-article", "two-column-article", "report", "slides", "letter").
 

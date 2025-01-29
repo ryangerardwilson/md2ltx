@@ -3,7 +3,6 @@ import os
 import sys
 import tempfile
 
-
 # flake8: noqa: E402
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/md2ltx/lib')))
 from python_evaluation import evaluate_python_in_markdown_string
@@ -34,21 +33,26 @@ Markdown is fantastic! `EMBED::sqrt_of_16`. Markdown is fantastic2! `EMBED::comp
 And this is incomingcalls: `EMBED::eval_3`
 
 [START]#########################################################################
+    import math
+
     def sqrt_of_16() -> str:
         val = math.sqrt(16)
         return f"The square root of 16 is {val}"
 [END]###########################################################################
 
 [START]#########################################################################
+    import math
+    from rgwfuncs import load_data_from_query
+
     def compute_2() -> str:
         val = math.sqrt(25)
         return f"The square root of 25 is {val}"
 
     def eval_3() -> str:
-        df = rgwfuncs.load_data_from_query("happy","SELECT * FROM incomingcalls LIMIT 20")
+        # Here we assume rgwfuncs.load_data_from_query is available
+        df = load_data_from_query("happy", "SELECT * FROM incomingcalls LIMIT 20")
         df_first_three_cols = df.iloc[:, :3]
         return df_first_three_cols
-
 [END]###########################################################################
     """
 
@@ -57,10 +61,12 @@ And this is incomingcalls: `EMBED::eval_3`
         print("EVALUATED CONTENT")
         print("#################################################################")
         print(evaluated_content)
-
+        print("#################################################################")
     except Exception as e:
-        print(e)
+        print(f"[Test failed] An error occurred: {e}")
 
 
 if __name__ == "__main__":
     test_evaluate_python_in_markdown_string()
+
+

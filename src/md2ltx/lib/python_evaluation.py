@@ -1,9 +1,11 @@
 import re
 import math
+import os
 import pandas as pd
 import numpy as np
 import rgwfuncs
-from datetime import datetime
+import typing
+from datetime import datetime, timedelta
 
 
 def evaluate_python_in_markdown_string(markdown_content: str) -> str:
@@ -14,6 +16,9 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
     4) Execute in a shared environment (so any function can appear in any block).
     5) Replace placeholders `EMBED::func_name` in the Markdown with the result of calling func_name().
     """
+
+    import re
+    import pandas as pd
 
     # Helper: Convert a pandas.DataFrame to Markdown pipe table
     def dataframe_to_pandoc_pipe(df: pd.DataFrame) -> str:
@@ -34,6 +39,9 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
             ellipsis_row = "| " + " | ".join("..." for _ in df.columns) + " |"
             return "\n".join([header, separator] + head_rows + [ellipsis_row] + tail_rows)
 
+    # Later used to look up and call user-defined functions
+    defined_functions = {}
+
     # Replace placeholders like `EMBED::func_name`
     def embed_replacer(match: re.Match) -> str:
         fn_name = match.group(1)
@@ -41,12 +49,8 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
             return f"[Error: No function named '{fn_name}' has been defined in the code blocks]"
         try:
             result_val = defined_functions[fn_name]()
+            # If the result is a DataFrame, convert it to a Markdown pipe table
             if isinstance(result_val, pd.DataFrame):
-                print("#########################################################")
-                print(f"Evaulation of {fn_name}")
-                print("---------------------------------------------------------")
-                print(result_val)
-                print("#########################################################")
                 row_count, column_count = result_val.shape
                 column_names = list(result_val.columns)
                 md_table = dataframe_to_pandoc_pipe(result_val)
@@ -55,27 +59,20 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
                     f"with columns: {column_names}\n\n{md_table}"
                 )
             else:
-                print("#########################################################")
-                print(f"Evaulation of {fn_name}")
-                print("---------------------------------------------------------")
-                print(result_val)
-                print("#########################################################")
                 return str(result_val)
         except Exception as e:
             return f"[Error calling '{fn_name}': {e}]"
 
     # Remove exactly 4 leading spaces from each line
     def remove_4_spaces(line: str) -> str:
-        # If line starts with 4 spaces, remove them; otherwise do a simple lstrip
         if len(line) >= 4 and line[:4] == "    ":
             return line[4:]
         else:
-            # If it's blank or less than 4 spaces, just remove what’s there
             return line.lstrip()
 
     # Regex: capture all blocks between [START] and [END]
-    block_pattern = re.compile(r"\[START\]#{3,}\s*(.*?)\s*\[END\]#{3,}", re.DOTALL)
-    found_blocks = block_pattern.findall(markdown_content)
+    import_pattern = re.compile(r"\[START\]#{3,}\s*(.*?)\s*\[END\]#{3,}", re.DOTALL)
+    found_blocks = import_pattern.findall(markdown_content)
 
     # Combine all code from all blocks
     combined_code = "\n".join(found_blocks)
@@ -83,28 +80,24 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
     processed_lines = [remove_4_spaces(ln) for ln in combined_code.splitlines()]
     final_code = "\n".join(processed_lines)
 
-    # Environment for the code
-    env = {
-        "math": math,
-        "pd": pd,
-        "np": np,
-        "datetime": datetime,
-        "rgwfuncs": rgwfuncs
-    }
+    # Provide a minimal environment so all imports have to appear within the code blocks themselves
+    env = {"__builtins__": __builtins__}
 
-    # Execute the flattened code
+    # Execute the combined code in a shared environment
     try:
         exec(final_code, env, env)
     except Exception as exc:
         print(f"[Error executing combined code: {exc}]")
 
-    # Collect newly defined functions
+    # Gather any callable objects that were defined by the user’s code blocks
     defined_functions = {k: v for k, v in env.items() if callable(v)}
 
-    # Remove code blocks from Markdown
-    content_no_blocks = block_pattern.sub("", markdown_content)
+    # Remove code blocks from the final Markdown
+    content_no_blocks = import_pattern.sub("", markdown_content)
 
+    # Replace placeholders `EMBED::func_name` with the function's result
     placeholder_pattern = re.compile(r"`EMBED::(\w+)`")
     final_content = placeholder_pattern.sub(embed_replacer, content_no_blocks)
 
     return final_content
+
