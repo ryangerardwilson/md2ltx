@@ -17,9 +17,6 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
     5) Replace placeholders `EMBED::func_name` in the Markdown with the result of calling func_name().
     """
 
-    import re
-    import pandas as pd
-
     # Helper: Convert a pandas.DataFrame to Markdown pipe table
     def dataframe_to_pandoc_pipe(df: pd.DataFrame) -> str:
         header = "| " + " | ".join(df.columns) + " |"
@@ -39,9 +36,6 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
             ellipsis_row = "| " + " | ".join("..." for _ in df.columns) + " |"
             return "\n".join([header, separator] + head_rows + [ellipsis_row] + tail_rows)
 
-    # Later used to look up and call user-defined functions
-    defined_functions = {}
-
     # Replace placeholders like `EMBED::func_name`
     def embed_replacer(match: re.Match) -> str:
         fn_name = match.group(1)
@@ -52,7 +46,8 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
             # If the result is a DataFrame, convert it to a Markdown pipe table
             if isinstance(result_val, pd.DataFrame):
                 row_count, column_count = result_val.shape
-                column_names = list(result_val.columns)
+                # column_names = list(result_val.columns)
+                column_names = ", ".join(f"*{col}*" for col in result_val.columns)
                 md_table = dataframe_to_pandoc_pipe(result_val)
                 return (
                     f"Dataframe (dimensions: {row_count} × {column_count}), "
@@ -69,6 +64,9 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
             return line[4:]
         else:
             return line.lstrip()
+
+    # Later used to look up and call user-defined functions
+    defined_functions = {}
 
     # Regex: capture all blocks between [START] and [END]
     import_pattern = re.compile(r"\[START\]#{3,}\s*(.*?)\s*\[END\]#{3,}", re.DOTALL)
