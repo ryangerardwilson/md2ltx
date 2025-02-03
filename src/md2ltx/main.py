@@ -49,7 +49,6 @@ def compile_markdown_to_pdf(
             'pandoc', md_path,
             '-s',
             '-o', tex_path,
-            '--pdf-engine=pdflatex',
             '--pdf-engine-opt=--quiet'
         ]
 

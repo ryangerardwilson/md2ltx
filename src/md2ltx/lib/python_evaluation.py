@@ -85,6 +85,7 @@ def evaluate_python_in_markdown_string(markdown_content: str) -> str:
     try:
         exec(final_code, env, env)
     except Exception as exc:
+        print("############ PRINTING CODE BLOCK TO HELP YOU DIAGNOSE LINE-SPECIFIC ERROR ###############\n\n",final_code)
         print(f"[Error executing combined code: {exc}]")
 
     # Gather any callable objects that were defined by the user’s code blocks
