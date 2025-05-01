@@ -68,5 +68,3 @@ And this is incomingcalls: `EMBED::eval_3`
 
 if __name__ == "__main__":
     test_evaluate_python_in_markdown_string()
-
-

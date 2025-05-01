@@ -7,8 +7,8 @@ import argparse
 import shutil
 from typing import Optional
 
-from .lib.constants import logo_string, help_string, templates
-from .lib.python_evaluation import evaluate_python_in_markdown_string
+from constants import logo_string, help_string, templates
+from python_evaluation import evaluate_python_in_markdown_string
 
 
 def preprocess_markdown_file(source_file: str, test: bool = False) -> str:

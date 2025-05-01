@@ -4,18 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "md2ltx"
-version = "0.0.46"
+version = "0.0.56"
 description = "Convert Markdown (.md) files to PDF ..."
 readme = "README.md"
 requires-python = ">=3.10"
 
 authors = [
-  { name = "Ryan Gerard Wilson", email = "info@ryangerardwilson.com" }
+  { name = "Ryan Gerard Wilson", email = "ryan@wilsonfamilyoffice.com" }
 ]
 
-# Dependencies needed during runtime
 dependencies = [
-  "tqdm"
+  "numpy",
+  "pandas",
 ]
 
 classifiers = [
@@ -25,12 +25,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ryangerardwilson/md2ltx"
-Issues = "https://github.com/ryangerardwilson/md2ltx"
+Homepage = "https://ryangerardwilson.com"
+Issues   = "https://ryangerardwilson.com/contact"
 
 [project.entry-points."console_scripts"]
-md2ltx = "md2ltx.main:main"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
+md2ltx = "main:main"
