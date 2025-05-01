@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel", "fastentrypoints"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "md2ltx"
-version = "0.0.56"
+version = "0.0.57"
 description = "Convert Markdown (.md) files to PDF ..."
 readme = "README.md"
 requires-python = ">=3.10"
